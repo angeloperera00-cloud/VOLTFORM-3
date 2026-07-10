@@ -33,7 +33,7 @@ final class OnboardingStateManager {
 
     func buildProfile() -> UserProfile {
         UserProfile(
-            name: "Angelo Perera",
+            name: DeviceIdentity.suggestedUserName,
             age: Int(age) ?? 24,
             heightCm: Double(height) ?? 180,
             weightKg: Double(weight) ?? 82,

@@ -254,13 +254,13 @@ enum SplitType: String, Codable, CaseIterable {
     /// Why the engine picks this split — surfaced in the UI as coach reasoning.
     var rationale: String {
         switch self {
-        case .fullBody: return "Hits every muscle 3× per week — the fastest way to build a base and burn calories."
+        case .fullBody: return "Hits every muscle 3× per week the fastest way to build a base and burn calories."
         case .upperLower: return "Trains each muscle 2× per week with enough recovery between sessions."
         case .ppl: return "Groups muscles that work together, so nothing interferes with recovery."
         case .pplUpper: return "PPL base plus an extra upper day to bring up your weaker upper-body muscles."
-        case .pplDouble: return "Every muscle trained twice per week — maximum growth stimulus for experienced lifters."
-        case .arnold: return "Chest/back supersets and a dedicated shoulder-arm day — a physique-focused split."
-        case .broSplit: return "One muscle per day with very high volume — each muscle gets a full week to recover."
+        case .pplDouble: return "Every muscle trained twice per week maximum growth stimulus for experienced lifters."
+        case .arnold: return "Chest/back supersets and a dedicated shoulder-arm day a physique focused split."
+        case .broSplit: return "One muscle per day with very high volume each muscle gets a full week to recover."
         }
     }
 }

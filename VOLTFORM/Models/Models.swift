@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import UIKit
 
 // MARK: - UserProfile
 
@@ -25,7 +26,7 @@ final class UserProfile {
     var createdAt: Date
 
     init(
-        name: String = "Angelo Perera",
+        name: String = DeviceIdentity.suggestedUserName,
         age: Int = 24,
         heightCm: Double = 180,
         weightKg: Double = 82,
