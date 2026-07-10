@@ -32,7 +32,15 @@ struct BodyView: View {
                         .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(.white)
                     Spacer()
-                    Color.clear.frame(width: 36, height: 36)
+                    Button { showScan = true } label: {
+                        Image(systemName: "camera.viewfinder")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Color.voltLime)
+                            .frame(width: 36, height: 36)
+                            .background(Color.white.opacity(0.1))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 PillSegmentedControl(options: ["Overview", "Muscle Balance", "Posture"], selection: $tab, dark: true)
@@ -47,10 +55,6 @@ struct BodyView: View {
                     }
                     .padding(.bottom, 20)
                 }
-
-                PrimaryButton(title: latestScan == nil ? "Start Body Scan" : "Update Body Scan", icon: "camera.viewfinder", style: .lime) {
-                    showScan = true
-                }
             }
             .padding(20)
         }
@@ -62,36 +66,43 @@ struct BodyView: View {
     // MARK: Overview
 
     private var overviewTab: some View {
-        VStack(spacing: 14) {
-            DarkWorkoutCard {
-                HStack(spacing: 16) {
+        VStack(spacing: 16) {
+            HStack(alignment: .top, spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(Color.voltDarkCard)
                     BodyFigurePlaceholder(dark: true)
-                        .frame(width: 90, height: 130)
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Estimated body type")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.white.opacity(0.5))
-                        Text(latestScan?.bodyType.rawValue ?? profile?.currentBodyType.rawValue ?? "Athletic")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundStyle(Color.voltLime)
-                        Text("Values are estimates from your scan and profile — not medical measurements.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white.opacity(0.4))
-                    }
+                        .padding(24)
                 }
-            }
+                .frame(maxWidth: .infinity)
+                .frame(height: 320)
 
-            HStack(spacing: 12) {
-                MetricCard(icon: "percent", title: "Est. Body Fat", value: latestScan.map { String(format: "%.0f%%", $0.bodyFatPercent) } ?? "16%", dark: true)
-                MetricCard(icon: "figure.strengthtraining.traditional", title: "Est. Muscle Mass", value: latestScan.map { String(format: "%.1f kg", $0.muscleMassKg) } ?? "38.6 kg", dark: true)
-            }
-            HStack(spacing: 12) {
-                MetricCard(icon: "bolt.fill", title: "Metabolic Age", value: "\(latestScan?.metabolicAge ?? 22)", caption: "Estimated", captionColor: .voltTextMuted, dark: true)
-                MetricCard(icon: "target", title: "Dream Body", value: profile?.dreamBody.rawValue ?? "Athletic", dark: true)
+                VStack(spacing: 10) {
+                    bodyStatRow(title: "Body Type", value: latestScan?.bodyType.rawValue ?? profile?.currentBodyType.rawValue ?? "Athletic")
+                    bodyStatRow(title: "Body Fat", value: latestScan.map { String(format: "%.0f%%", $0.bodyFatPercent) } ?? "16%")
+                    bodyStatRow(title: "Muscle Mass", value: latestScan.map { String(format: "%.1f kg", $0.muscleMassKg) } ?? "38.6 kg")
+                    bodyStatRow(title: "Metabolic Age", value: "\(latestScan?.metabolicAge ?? 22)")
+                }
+                .frame(width: 128)
             }
 
             dreamProgressCard
         }
+    }
+
+    private func bodyStatRow(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.white.opacity(0.5))
+            Text(value)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(.white)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color.voltDarkCard)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private var dreamProgressCard: some View {
@@ -99,7 +110,7 @@ struct BodyView: View {
         return DarkWorkoutCard {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text("Progress toward \(profile?.dreamBody.rawValue ?? "Athletic")")
+                    Text("Progress")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
                     Spacer()
@@ -107,6 +118,9 @@ struct BodyView: View {
                         .font(.system(size: 15, weight: .bold))
                         .foregroundStyle(Color.voltLime)
                 }
+                Text("You're making great progress toward \(profile?.dreamBody.rawValue ?? "Athletic"). Keep it up!")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.white.opacity(0.5))
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         Capsule().fill(Color.white.opacity(0.1))
@@ -116,9 +130,6 @@ struct BodyView: View {
                     }
                 }
                 .frame(height: 8)
-                Text("Based on training consistency, scans and recovery quality.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.white.opacity(0.4))
             }
         }
     }
@@ -197,7 +208,7 @@ struct BodyView: View {
                             .frame(width: 26, alignment: .trailing)
                     }
                 }
-                Text("Estimated from your latest scan — the AI program adds sets where bars are low.")
+                Text("Estimated from your latest scan the AI program adds sets where bars are low.")
                     .font(.system(size: 11))
                     .foregroundStyle(.white.opacity(0.4))
             }
@@ -247,7 +258,7 @@ struct BodyView: View {
                                 .font(.system(size: 14))
                                 .foregroundStyle(.white.opacity(0.4))
                         }
-                        Text(scan.postureScore >= 88 ? "Solid alignment. Keep training your core and upper back." : "Slight forward-shoulder tendency detected. Face pulls and rows will help.")
+                        Text(scan.postureScore >= 88 ? "Solid alignment. Keep training your core and upper back." : "Slight forward shoulder tendency detected. Face pulls and rows will help.")
                             .font(.system(size: 13))
                             .foregroundStyle(.white.opacity(0.7))
                     }

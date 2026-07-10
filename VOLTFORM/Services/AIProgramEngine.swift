@@ -118,7 +118,7 @@ enum AIProgramEngine {
                               note: "Short HIIT burns fat without eating into the muscle you need to build.")
         case .ectomorph:
             return CardioPlan(type: .walking, sessionsPerWeek: 1, minutes: 20,
-                              note: "Minimal cardio — every extra calorie goes toward building muscle.")
+                              note: "Minimal cardio every extra calorie goes toward building muscle.")
         case .lean, .athletic, .mesomorph:
             if profile.goal == .loseFat || profile.goal == .getLean {
                 return CardioPlan(type: .hiit, sessionsPerWeek: 3, minutes: 20,
@@ -466,7 +466,7 @@ enum AIProgramEngine {
         var notes: [String] = [split.rationale, cardio.note, core.note]
         if let scan {
             let weak = scan.weakest.map(\.rawValue).joined(separator: " and ")
-            notes.append("Your scan shows \(weak) lagging — the plan adds extra sets there until the gap closes.")
+            notes.append("Your scan shows \(weak) lagging the plan adds extra sets there until the gap closes.")
         }
         notes.append(contentsOf: adaptationNotes(recoveries: recoveries, sessions: sessions))
 
@@ -498,11 +498,11 @@ enum AIProgramEngine {
         var notes: [String] = []
         let overtrained = recoveries.filter(\.warning).map(\.muscle.rawValue)
         if !overtrained.isEmpty {
-            notes.append("\(overtrained.joined(separator: ", ")) has been under 60% recovery for 5+ days — volume reduced this week to let it rebuild.")
+            notes.append("\(overtrained.joined(separator: ", ")) has been under 60% recovery for 5+ days volume reduced this week to let it rebuild.")
         }
         let thisWeek = sessions.filter { $0.isCompleted && $0.startDate > Date.now.addingTimeInterval(-7 * 86400) }
         if thisWeek.count >= 4 {
-            notes.append("You've completed \(thisWeek.count) sessions in 7 days — great consistency. Progressive overload will nudge your weights up.")
+            notes.append("You've completed \(thisWeek.count) sessions in 7 days great consistency. Progressive overload will nudge your weights up.")
         }
         return notes
     }

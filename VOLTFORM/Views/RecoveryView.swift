@@ -161,7 +161,7 @@ struct RecoveryCheckInSheet: View {
                 )
             }
 
-            PrimaryButton(title: "Save Check-in") {
+            PrimaryButton(title: "Save Check in") {
                 let checkIn = DailyRecoveryCheckIn(date: .now, sleepHours: sleepHours, hydration: hydration, soreness: soreness)
                 context.insert(checkIn)
                 if let profile = profiles.first {

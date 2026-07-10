@@ -144,7 +144,7 @@ private struct LevelStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(manager: manager, title: "Your fitness level", subtitle: "Recovery time is personal — beginners need more of it.")
+            StepHeader(manager: manager, title: "Your fitness level", subtitle: "Recovery time is personal beginners need more of it.")
 
             VStack(spacing: 12) {
                 ForEach(FitnessLevel.allCases, id: \.self) { level in
