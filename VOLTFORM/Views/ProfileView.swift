@@ -231,7 +231,7 @@ struct AppPreferencesView: View {
     var body: some View {
         Form {
             Section("Notifications") {
-                Toggle("Muscle-ready reminders", isOn: $notificationsEnabled)
+                Toggle("Muscle ready reminders", isOn: $notificationsEnabled)
                     .onChange(of: notificationsEnabled) { _, enabled in
                         if enabled { NotificationService.requestAuthorization() }
                         else { NotificationService.cancelAll() }

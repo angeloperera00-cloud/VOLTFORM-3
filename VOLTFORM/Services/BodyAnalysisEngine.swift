@@ -61,7 +61,7 @@ enum BodyAnalysisEngine {
         metabolicAge = max(18, metabolicAge)
 
         // --- Per-muscle development distribution (0-100) ---
-        // Baseline shifts with body type; per-muscle noise creates the
+        // Baseline shifts with body type; per muscle noise creates the
         // individual imbalances the program engine trains against.
         let baseline: Int
         switch bodyType {

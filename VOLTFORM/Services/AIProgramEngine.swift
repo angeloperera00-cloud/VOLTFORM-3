@@ -140,11 +140,11 @@ enum AIProgramEngine {
 
         if highFat {
             return CorePlan(sessionsPerWeek: 2,
-                            note: "Abs are built in the gym but revealed by fat loss — cardio does the heavy lifting for now.")
+                            note: "Abs are built in the gym but revealed by fat loss cardio does the heavy lifting for now.")
         }
         if profile.dreamBody == .lean || profile.goal == .getLean {
             return CorePlan(sessionsPerWeek: 3,
-                            note: "You're lean enough for direct ab work to show — training core 3× per week.")
+                            note: "You're lean enough for direct ab work to show training core 3× per week.")
         }
         return CorePlan(sessionsPerWeek: 2,
                         note: "Weighted core work twice a week builds thickness and supports your big lifts.")
@@ -269,10 +269,10 @@ enum AIProgramEngine {
         case "back":
             return [
                 e("Deadlift", .back, 4, r.compound),
-                e("Pull-Up", .back, 4, r.compound),
+                e("Pull Up", .back, 4, r.compound),
                 e("Barbell Row", .back, 3, "8-10 reps"),
                 e("Seated Cable Row", .back, 3, "10-12 reps"),
-                e("Straight-Arm Pulldown", .back, 2, r.isolation)
+                e("Straight Arm Pulldown", .back, 2, r.isolation)
             ]
         case "shoulders":
             return [
@@ -284,8 +284,8 @@ enum AIProgramEngine {
             ]
         case "arms":
             return [
-                e("Close-Grip Bench Press", .arms, 4, r.compound),
-                e("EZ-Bar Curl", .arms, 4, "8-12 reps"),
+                e("Close Grip Bench Press", .arms, 4, r.compound),
+                e("EZ Bar Curl", .arms, 4, "8-12 reps"),
                 e("Skull Crusher", .arms, 3, r.isolation),
                 e("Incline Dumbbell Curl", .arms, 3, r.isolation),
                 e("Rope Pushdown", .arms, 3, r.isolation),
@@ -521,7 +521,7 @@ enum AIProgramEngine {
         let topWeight = last.sets.map(\.weight).max() ?? 0
         guard topWeight > 0 else { return nil }
 
-        let isCompound = ["Squat", "Deadlift", "Bench", "Press", "Row", "Pull-Up", "Dip", "Thrust"]
+        let isCompound = ["Squat", "Deadlift", "Bench", "Press", "Row", "Pull Up", "Dip", "Thrust"]
             .contains { exerciseName.contains($0) }
         let increment: Double = isCompound ? 2.5 : 1.0
         return last.isDone ? topWeight + increment : topWeight

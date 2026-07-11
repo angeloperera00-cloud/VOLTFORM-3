@@ -71,7 +71,7 @@ struct RecoveryView: View {
             HStack(spacing: 20) {
                 RecoveryRing(percentage: overall, size: 104, caption: overall >= 70 ? "Good" : (overall >= 45 ? "Average" : "Low"))
                 VStack(alignment: .leading, spacing: 12) {
-                    overviewRow(icon: "moon.fill", label: "Sleep", value: VoltFormat.hoursMinutes(sleepAvg), delta: "3-day avg", deltaColor: .voltTextMuted)
+                    overviewRow(icon: "moon.fill", label: "Sleep", value: VoltFormat.hoursMinutes(sleepAvg), delta: "3day avg", deltaColor: .voltTextMuted)
                     overviewRow(icon: "drop.fill", label: "Hydration", value: profile.hydration.rawValue, delta: profile.hydration == .good ? "+3%" : (profile.hydration == .low ? "+6% slower" : "—"), deltaColor: profile.hydration == .good ? .voltLimeDeep : .voltWarning)
                     overviewRow(icon: "waveform.path.ecg", label: "Soreness", value: profile.soreness.rawValue, delta: profile.soreness == .low ? "-2%" : (profile.soreness == .high ? "+20% slower" : "+5%"), deltaColor: profile.soreness == .low ? .voltLimeDeep : .voltWarning)
                 }

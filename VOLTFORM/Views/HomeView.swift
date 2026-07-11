@@ -11,6 +11,7 @@ struct HomeView: View {
     let switchTab: (VoltTab) -> Void
 
     @State private var activeSession: WorkoutSession?
+    @State private var selectedExerciseIndex: Int = 0
 
     private var profile: UserProfile? { profiles.first }
 
@@ -75,18 +76,18 @@ struct HomeView: View {
     private func todaysPlanCard(profile: UserProfile) -> some View {
         switch todaysPlan(profile: profile) {
         case .lift(let workout):
-            liftCard(workout: workout)
+            liftCard(workout: workout, label: "Today's Plan")
         case .cardio(let type, let minutes):
-            cardioCard(type: type, minutes: minutes)
+            cardioCard(type: type, minutes: minutes, label: "Today's Plan")
         case .rest:
-            restCard
+            restCard(label: "Today's Plan")
         }
     }
 
-    private func liftCard(workout: PlannedWorkout) -> some View {
+    private func liftCard(workout: PlannedWorkout, label: String) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("Today's Plan")
+                Text(label)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Color.voltTextMuted)
                 Spacer()
@@ -116,6 +117,8 @@ struct HomeView: View {
                     .frame(width: 74, height: 100)
             }
 
+            exercisePager(exercises: workout.exercises)
+
             PrimaryButton(title: "Start Workout", icon: "play.fill", style: .lime) {
                 activeSession = StorageService.startSession(from: workout, context: context)
             }
@@ -126,10 +129,72 @@ struct HomeView: View {
         .shadow(color: .black.opacity(0.05), radius: 14, x: 0, y: 6)
     }
 
-    private func cardioCard(type: CardioType, minutes: Int) -> some View {
+    private func exercisePager(exercises: [PlannedExercise]) -> some View {
+        VStack(spacing: 8) {
+            TabView(selection: $selectedExerciseIndex) {
+                ForEach(Array(exercises.enumerated()), id: \.offset) { index, exercise in
+                    exerciseMiniCard(exercise: exercise)
+                        .tag(index)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(height: 62)
+
+            exercisePageDots(count: exercises.count)
+        }
+        .onAppear {
+            if selectedExerciseIndex >= exercises.count {
+                selectedExerciseIndex = 0
+            }
+        }
+    }
+
+    private func exerciseMiniCard(exercise: PlannedExercise) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: exercise.muscle.icon)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(Color.voltTextDark)
+                .frame(width: 36, height: 36)
+                .background(Color.voltSoftGray)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(exercise.name)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.voltTextDark)
+                Text("\(exercise.sets) sets × \(exercise.repRange)")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.voltTextMuted)
+            }
+            Spacer()
+        }
+        .padding(10)
+        .background(Color.voltSoftGray.opacity(0.5))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private func exercisePageDots(count: Int) -> some View {
+        HStack(spacing: 6) {
+            ForEach(0..<count, id: \.self) { index in
+                let isActive: Bool = index == selectedExerciseIndex
+                exercisePageDot(isActive: isActive)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func exercisePageDot(isActive: Bool) -> some View {
+        let dotWidth: CGFloat = isActive ? 16 : 6
+        let dotColor: Color = isActive ? Color.voltLimeDeep : Color.voltTextMuted.opacity(0.25)
+        return Capsule()
+            .fill(dotColor)
+            .frame(width: dotWidth, height: 6)
+            .animation(.easeInOut(duration: 0.2), value: isActive)
+    }
+
+    private func cardioCard(type: CardioType, minutes: Int, label: String) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("Today's Plan")
+                Text(label)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Color.voltTextMuted)
                 Spacer()
@@ -149,9 +214,9 @@ struct HomeView: View {
                     Text("\(minutes) min · Zone 2 effort")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.voltTextMuted)
-                    Text("Your AI program scheduled cardio today lifting muscles get a chance to recover.")
+                    Text("Your AI program scheduled cardio today — lifting muscles get a chance to recover.")
                         .font(.system(size: 12))
-                        .foregroundStyle(Color.voltLimeDeep)
+                        .foregroundStyle(Color.voltTextDark)
                 }
                 Spacer()
                 Image(systemName: type.icon)
@@ -166,10 +231,10 @@ struct HomeView: View {
         .shadow(color: .black.opacity(0.05), radius: 14, x: 0, y: 6)
     }
 
-    private var restCard: some View {
+    private func restCard(label: String) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("Today's Plan")
+                Text(label)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Color.voltTextMuted)
                 Spacer()
@@ -186,7 +251,7 @@ struct HomeView: View {
                     Text("Recovery Day")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundStyle(Color.voltTextDark)
-                    Text("Muscle grows while you rest — your AI program planned this on purpose.")
+                    Text("Muscle grows while you rest your AI program planned this on purpose.")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.voltTextMuted)
                 }

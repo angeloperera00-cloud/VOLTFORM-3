@@ -380,7 +380,7 @@ private struct OnboardingScanStep: View {
                 Text("Body scan")
                     .font(.system(size: 26, weight: .bold))
                     .foregroundStyle(Color.voltTextDark)
-                Text("Take a quick photo to analyze your current physique. This helps us fine-tune your recovery and performance.")
+                Text("Take a quick photo to analyze your current physique. This helps us fine tune your recovery and performance.")
                     .font(.system(size: 14))
                     .foregroundStyle(Color.voltTextMuted)
                     .multilineTextAlignment(.center)

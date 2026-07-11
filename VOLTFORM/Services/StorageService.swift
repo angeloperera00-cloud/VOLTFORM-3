@@ -87,7 +87,7 @@ enum StorageService {
             ("Romanian Deadlift", .legs, 3, 75)
         ])
 
-        // Sleep check-ins for the 3-day average (~7h 23m).
+        // Sleep check-ins for the 3day average (~7h 23m).
         let calendar = Calendar.current
         let sleepValues: [Double] = [7.2, 7.5, 7.45]
         for (index, value) in sleepValues.enumerated() {
