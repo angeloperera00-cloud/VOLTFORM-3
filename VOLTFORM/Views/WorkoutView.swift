@@ -88,12 +88,19 @@ struct WorkoutView: View {
                 VStack(spacing: 0) {
                     ForEach(Array(workout.exercises.enumerated()), id: \.element.id) { index, exercise in
                         let done = isExerciseDone(exercise.name, in: session)
-                        WorkoutExerciseRow(
-                            index: index + 1,
-                            name: exercise.name,
-                            detail: "\(exercise.sets) sets × \(exercise.repRange)",
-                            isCompleted: done
-                        )
+                        Button {
+                            guard session?.isCompleted != true else { return }
+                            beginOrContinue(workout: workout, session: session)
+                        } label: {
+                            WorkoutExerciseRow(
+                                index: index + 1,
+                                name: exercise.name,
+                                detail: "\(exercise.sets) sets × \(exercise.repRange)",
+                                isCompleted: done
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(session?.isCompleted == true)
                     }
                 }
 
@@ -111,15 +118,19 @@ struct WorkoutView: View {
 
                 if session?.isCompleted != true {
                     PrimaryButton(title: session == nil ? "Start Workout" : "Continue Workout", icon: "play.fill") {
-                        if let session, !session.isCompleted {
-                            activeSession = session
-                        } else {
-                            activeSession = StorageService.startSession(from: workout, context: context)
-                        }
+                        beginOrContinue(workout: workout, session: session)
                     }
                 }
             }
             .voltCard()
+        }
+    }
+
+    private func beginOrContinue(workout: PlannedWorkout, session: WorkoutSession?) {
+        if let session, !session.isCompleted {
+            activeSession = session
+        } else {
+            activeSession = StorageService.startSession(from: workout, context: context)
         }
     }
 

@@ -21,7 +21,7 @@ enum PreviewSupport {
     @MainActor
     private static func seed(into context: ModelContext) {
         let profile = UserProfile(
-            name: "Angelo",
+            name: "",
             age: 24, heightCm: 180, weightKg: 82, gender: .male,
             goal: .buildMuscle, fitnessLevel: .intermediate, trainingDaysPerWeek: 4,
             dreamBody: .athletic, sleepAverage: .sevenToEight, soreness: .low,

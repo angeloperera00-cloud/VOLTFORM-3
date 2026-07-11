@@ -338,17 +338,7 @@ struct BottomTabBar: View {
         HStack(alignment: .bottom) {
             tabButton(.home)
             tabButton(.workout)
-            Button(action: onBodyScan) {
-                Image(systemName: "person.fill.viewfinder")
-                    .font(.system(size: 21, weight: .semibold))
-                    .foregroundStyle(Color.voltLime)
-                    .frame(width: 56, height: 56)
-                    .background(Color.voltBlack)
-                    .clipShape(Circle())
-                    .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
-            }
-            .buttonStyle(.plain)
-            .offset(y: -12)
+            scanButton
             tabButton(.recovery)
             tabButton(.profile)
         }
@@ -378,6 +368,26 @@ struct BottomTabBar: View {
                     .frame(width: 16, height: 3)
             }
             .foregroundStyle(selected == tab ? Color.voltTextDark : Color.voltTextMuted)
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Same icon+label+underline layout and sizing as the other tabs, but
+    /// always lime-tinted since this is an action button, not a navigable
+    /// tab with a selected/unselected state.
+    private var scanButton: some View {
+        Button(action: onBodyScan) {
+            VStack(spacing: 4) {
+                Image(systemName: "person.fill.viewfinder")
+                    .font(.system(size: 20, weight: .medium))
+                Text("Scan")
+                    .font(.system(size: 10, weight: .medium))
+                Capsule()
+                    .fill(Color.voltLime)
+                    .frame(width: 16, height: 3)
+            }
+            .foregroundStyle(Color.voltLime)
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
