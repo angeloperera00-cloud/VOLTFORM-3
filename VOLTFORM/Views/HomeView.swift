@@ -149,7 +149,7 @@ struct HomeView: View {
                     Text("\(minutes) min · Zone 2 effort")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.voltTextMuted)
-                    Text("Your AI program scheduled cardio today — lifting muscles get a chance to recover.")
+                    Text("Your AI program scheduled cardio today lifting muscles get a chance to recover.")
                         .font(.system(size: 12))
                         .foregroundStyle(Color.voltLimeDeep)
                 }
@@ -186,7 +186,7 @@ struct HomeView: View {
                     Text("Recovery Day")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundStyle(Color.voltTextDark)
-                    Text("Muscle grows while you rest your AI program planned this on purpose.")
+                    Text("Muscle grows while you rest — your AI program planned this on purpose.")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.voltTextMuted)
                 }
@@ -238,4 +238,9 @@ struct HomeView: View {
             }
         }
     }
+}
+
+#Preview {
+    HomeView(switchTab: { _ in })
+        .modelContainer(PreviewSupport.container)
 }
