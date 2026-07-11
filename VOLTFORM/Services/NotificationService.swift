@@ -16,7 +16,7 @@ enum NotificationService {
 
         let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: readyBy)
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
-        let request = UNNotificationRequest(identifier: "recovery-\(muscle.rawValue)", content: content, trigger: trigger)
+        let request = UNNotificationRequest(identifier: "recovery\(muscle.rawValue)", content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
     }
 

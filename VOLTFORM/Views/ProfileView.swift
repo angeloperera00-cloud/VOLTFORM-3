@@ -252,7 +252,7 @@ struct HelpSupportView: View {
     var body: some View {
         Form {
             Section("How recovery works") {
-                Text("Every muscle has a base recovery window (36–72 hours). VOLTFORM adjusts it with your fitness level, sleep, soreness, hydration, training volume, and the gap between your current and dream body — so your forecast is yours alone.")
+                Text("Every muscle has a base recovery window (36–72 hours). VOLTFORM adjusts it with your fitness level, sleep, soreness, hydration, training volume, and the gap between your current and dream body so your forecast is yours alone.")
                     .font(.footnote)
             }
             Section("Contact") {
