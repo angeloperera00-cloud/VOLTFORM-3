@@ -242,6 +242,7 @@ private struct AboutYouStep: View {
                 .keyboardType(.numberPad)
                 .multilineTextAlignment(.trailing)
                 .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color.voltTextDark)
                 .frame(width: 70)
             Text(unit)
                 .font(.system(size: 13))

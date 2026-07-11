@@ -68,7 +68,7 @@ struct HomeView: View {
     }
 
     private func todaysPlan(profile: UserProfile) -> DayPlan {
-        let recoveries = RecoveryEngine.allRecoveries(profile: profile, sessions: sessions)
+        let recoveries = RecoveryEngine.allRecoveries(profile: profile, sessions: sessions, scan: scans.first)
         return AIProgramEngine.todaysPlan(profile: profile, scan: scans.first, recoveries: recoveries, sessions: sessions)
     }
 
@@ -269,7 +269,7 @@ struct HomeView: View {
     }
 
     private func overviewGrid(profile: UserProfile) -> some View {
-        let recoveries = RecoveryEngine.allRecoveries(profile: profile, sessions: sessions)
+        let recoveries = RecoveryEngine.allRecoveries(profile: profile, sessions: sessions, scan: scans.first)
         let overall = RecoveryEngine.overallRecovery(recoveries)
         let sleepAvg = RecoveryEngine.sleepThreeDayAverage(checkIns: checkIns, fallback: profile.sleepAverage.hours)
 

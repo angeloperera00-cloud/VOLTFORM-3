@@ -6,6 +6,7 @@ struct RecoveryView: View {
     @Query private var profiles: [UserProfile]
     @Query(sort: \WorkoutSession.startDate, order: .reverse) private var sessions: [WorkoutSession]
     @Query(sort: \DailyRecoveryCheckIn.date, order: .reverse) private var checkIns: [DailyRecoveryCheckIn]
+    @Query(sort: \BodyScanResult.date, order: .reverse) private var scans: [BodyScanResult]
 
     @State private var now = Date()
     @State private var showCheckIn = false
@@ -33,7 +34,7 @@ struct RecoveryView: View {
                 }
 
                 if let profile {
-                    let recoveries = RecoveryEngine.allRecoveries(profile: profile, sessions: sessions, at: now)
+                    let recoveries = RecoveryEngine.allRecoveries(profile: profile, sessions: sessions, at: now, scan: scans.first)
 
                     overviewCard(profile: profile, recoveries: recoveries)
 

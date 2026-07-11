@@ -136,7 +136,8 @@ struct BodyView: View {
 
     private var dreamProgress: Double {
         guard let profile else { return 28 }
-        if profile.currentBodyType == profile.dreamBody { return 86 }
+        let currentType = scans.first?.bodyType ?? profile.currentBodyType
+        if currentType == profile.dreamBody { return 86 }
         let base = 22.0
         let scanBoost = Double(min(scans.count, 6)) * 2
         return min(95, base + scanBoost + Double(profile.level))
@@ -208,7 +209,7 @@ struct BodyView: View {
                             .frame(width: 26, alignment: .trailing)
                     }
                 }
-                Text("Estimated from your latest scan the AI program adds sets where bars are low.")
+                Text("Estimated from your latest scan — the AI program adds sets where bars are low.")
                     .font(.system(size: 11))
                     .foregroundStyle(.white.opacity(0.4))
             }
@@ -258,7 +259,7 @@ struct BodyView: View {
                                 .font(.system(size: 14))
                                 .foregroundStyle(.white.opacity(0.4))
                         }
-                        Text(scan.postureScore >= 88 ? "Solid alignment. Keep training your core and upper back." : "Slight forward shoulder tendency detected. Face pulls and rows will help.")
+                        Text(scan.postureScore >= 88 ? "Solid alignment. Keep training your core and upper back." : "Slight forward-shoulder tendency detected. Face pulls and rows will help.")
                             .font(.system(size: 13))
                             .foregroundStyle(.white.opacity(0.7))
                     }
@@ -296,4 +297,9 @@ struct BodyView: View {
             .padding(.vertical, 12)
         }
     }
+}
+
+#Preview {
+    BodyView()
+        .modelContainer(PreviewSupport.container)
 }

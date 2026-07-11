@@ -5,6 +5,7 @@ struct AddWorkoutView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [UserProfile]
+    @Query(sort: \BodyScanResult.date, order: .reverse) private var scans: [BodyScanResult]
 
     @State private var name = ""
     @State private var selectedMuscles: Set<MuscleGroup> = []
@@ -159,7 +160,7 @@ struct AddWorkoutView: View {
             profile.xp += 40
             profile.level = 1 + profile.xp / 2500
             for muscle in muscles {
-                let needed = RecoveryEngine.neededHours(for: muscle, profile: profile, session: session)
+                let needed = RecoveryEngine.neededHours(for: muscle, profile: profile, session: session, scan: scans.first)
                 NotificationService.scheduleMuscleReadyReminder(muscle: muscle, readyBy: end.addingTimeInterval(needed * 3600))
             }
         }

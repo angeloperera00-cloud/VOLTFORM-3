@@ -7,6 +7,7 @@ struct WorkoutSessionView: View {
     @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [UserProfile]
     @Query(sort: \WorkoutSession.startDate, order: .reverse) private var allSessions: [WorkoutSession]
+    @Query(sort: \BodyScanResult.date, order: .reverse) private var scans: [BodyScanResult]
 
     let session: WorkoutSession
 
@@ -28,6 +29,19 @@ struct WorkoutSessionView: View {
     private var currentExercise: ExerciseLog? {
         guard exerciseIndex < orderedExercises.count else { return nil }
         return orderedExercises[exerciseIndex]
+    }
+
+    /// Personalized rest window from the AI engine's goal-based prescription
+    /// (e.g. ~150s for strength, ~90s for hypertrophy, ~60s for fat loss),
+    /// instead of one fixed value for every user.
+    private var baseRestSeconds: Int {
+        AIProgramEngine.restSeconds(for: profiles.first?.goal ?? .buildMuscle)
+    }
+
+    /// Between-exercise transitions get a slightly longer breather than
+    /// between-set rest within the same exercise.
+    private var betweenExerciseRestSeconds: Int {
+        baseRestSeconds + 15
     }
 
     var body: some View {
@@ -275,7 +289,7 @@ struct WorkoutSessionView: View {
                 finishSession()
             } else {
                 exerciseIndex += 1
-                startRest(seconds: 60)
+                startRest(seconds: betweenExerciseRestSeconds)
             }
             return
         }
@@ -291,10 +305,10 @@ struct WorkoutSessionView: View {
                 finishSession()
             } else {
                 exerciseIndex += 1
-                startRest(seconds: 60)
+                startRest(seconds: betweenExerciseRestSeconds)
             }
         } else {
-            startRest(seconds: 45)
+            startRest(seconds: baseRestSeconds)
         }
     }
 
@@ -334,7 +348,7 @@ struct WorkoutSessionView: View {
 
             // Schedule "muscle ready" notifications from the personalized forecast.
             for muscle in session.muscles {
-                let needed = RecoveryEngine.neededHours(for: muscle, profile: profile, session: session)
+                let needed = RecoveryEngine.neededHours(for: muscle, profile: profile, session: session, scan: scans.first)
                 let readyBy = (session.endDate ?? .now).addingTimeInterval(needed * 3600)
                 NotificationService.scheduleMuscleReadyReminder(muscle: muscle, readyBy: readyBy)
                 context.insert(RecoverySnapshot(date: .now, muscle: muscle, percentage: 0))
@@ -344,4 +358,9 @@ struct WorkoutSessionView: View {
         try? context.save()
         showCompleted = true
     }
+}
+
+#Preview {
+    WorkoutSessionView(session: PreviewSupport.sampleSession)
+        .modelContainer(PreviewSupport.container)
 }

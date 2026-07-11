@@ -47,7 +47,7 @@ struct WorkoutView: View {
     // MARK: Today
 
     private func todaysWorkout(profile: UserProfile) -> PlannedWorkout {
-        let recoveries = RecoveryEngine.allRecoveries(profile: profile, sessions: sessions)
+        let recoveries = RecoveryEngine.allRecoveries(profile: profile, sessions: sessions, scan: scans.first)
         return AIProgramEngine.todaysWorkout(profile: profile, scan: scans.first, recoveries: recoveries, sessions: sessions)
     }
 
@@ -142,7 +142,7 @@ struct WorkoutView: View {
     // MARK: AI Program
 
     private func programSection(profile: UserProfile) -> some View {
-        let recoveries = RecoveryEngine.allRecoveries(profile: profile, sessions: sessions)
+        let recoveries = RecoveryEngine.allRecoveries(profile: profile, sessions: sessions, scan: scans.first)
         let program = AIProgramEngine.program(profile: profile, scan: scans.first, sessions: sessions, recoveries: recoveries)
 
         return VStack(spacing: 14) {

@@ -36,14 +36,16 @@ struct MuscleRecovery: Identifiable {
 enum RecoveryEngine {
 
     /// Personalized hours needed for a muscle to fully recover after a session.
-    static func neededHours(for muscle: MuscleGroup, profile: UserProfile, session: WorkoutSession?) -> Double {
+    /// Prefers the latest body scan's classification over the profile's
+    /// cached snapshot, matching how AIProgramEngine resolves body type.
+    static func neededHours(for muscle: MuscleGroup, profile: UserProfile, session: WorkoutSession?, scan: BodyScanResult? = nil) -> Double {
         var hours = muscle.baseRecoveryHours
 
         hours *= profile.fitnessLevel.recoveryMultiplier      // Beginner +15%, Advanced -10%
         hours *= profile.soreness.recoveryMultiplier          // High soreness +20%
         hours *= profile.sleepAverage.recoveryMultiplier      // Low sleep +15%
         hours *= profile.hydration.recoveryMultiplier         // Good -3%, Low +6%
-        hours *= bodyGoalModifier(current: profile.currentBodyType, goal: profile.dreamBody, muscle: muscle)
+        hours *= bodyGoalModifier(current: scan?.bodyType ?? profile.currentBodyType, goal: profile.dreamBody, muscle: muscle)
 
         // Completed volume for this muscle in the session: +10% to +25%.
         if let session {
@@ -82,12 +84,12 @@ enum RecoveryEngine {
             .max(by: { ($0.endDate ?? $0.startDate) < ($1.endDate ?? $1.startDate) })
     }
 
-    static func snapshot(for muscle: MuscleGroup, profile: UserProfile, sessions: [WorkoutSession], at date: Date) -> (value: Double, readyBy: Date?, needed: Double) {
+    static func snapshot(for muscle: MuscleGroup, profile: UserProfile, sessions: [WorkoutSession], at date: Date, scan: BodyScanResult? = nil) -> (value: Double, readyBy: Date?, needed: Double) {
         guard let session = latestSession(for: muscle, in: sessions, before: date) else {
             return (100, nil, muscle.baseRecoveryHours)
         }
         let workoutEnd = session.endDate ?? session.startDate
-        let needed = neededHours(for: muscle, profile: profile, session: session)
+        let needed = neededHours(for: muscle, profile: profile, session: session, scan: scan)
         let hoursSinceWorkout = date.timeIntervalSince(workoutEnd) / 3600
         let percentage = min(100, max(0, hoursSinceWorkout / needed * 100))
         let readyByDate = workoutEnd.addingTimeInterval(needed * 3600)
@@ -95,7 +97,7 @@ enum RecoveryEngine {
     }
 
     /// Last N days of recovery values, sampled once per day (and "now" for today).
-    static func trend(for muscle: MuscleGroup, profile: UserProfile, sessions: [WorkoutSession], days: Int = 7, endingAt now: Date = .now) -> [TrendPoint] {
+    static func trend(for muscle: MuscleGroup, profile: UserProfile, sessions: [WorkoutSession], days: Int = 7, endingAt now: Date = .now, scan: BodyScanResult? = nil) -> [TrendPoint] {
         var points: [TrendPoint] = []
         let calendar = Calendar.current
         for offset in stride(from: days - 1, through: 0, by: -1) {
@@ -106,15 +108,15 @@ enum RecoveryEngine {
             } else {
                 sampleDate = calendar.date(bySettingHour: 21, minute: 0, second: 0, of: day) ?? day
             }
-            let result = snapshot(for: muscle, profile: profile, sessions: sessions, at: sampleDate)
+            let result = snapshot(for: muscle, profile: profile, sessions: sessions, at: sampleDate, scan: scan)
             points.append(TrendPoint(date: sampleDate, value: result.value))
         }
         return points
     }
 
-    static func recovery(for muscle: MuscleGroup, profile: UserProfile, sessions: [WorkoutSession], at now: Date = .now) -> MuscleRecovery {
-        let result = snapshot(for: muscle, profile: profile, sessions: sessions, at: now)
-        let trendPoints = trend(for: muscle, profile: profile, sessions: sessions, endingAt: now)
+    static func recovery(for muscle: MuscleGroup, profile: UserProfile, sessions: [WorkoutSession], at now: Date = .now, scan: BodyScanResult? = nil) -> MuscleRecovery {
+        let result = snapshot(for: muscle, profile: profile, sessions: sessions, at: now, scan: scan)
+        let trendPoints = trend(for: muscle, profile: profile, sessions: sessions, endingAt: now, scan: scan)
 
         // If a muscle stays below 60% for 5+ days, warn about chronic under-recovery.
         let lastFive = Array(trendPoints.suffix(5))
@@ -142,8 +144,8 @@ enum RecoveryEngine {
         )
     }
 
-    static func allRecoveries(profile: UserProfile, sessions: [WorkoutSession], at now: Date = .now) -> [MuscleRecovery] {
-        MuscleGroup.allCases.map { recovery(for: $0, profile: profile, sessions: sessions, at: now) }
+    static func allRecoveries(profile: UserProfile, sessions: [WorkoutSession], at now: Date = .now, scan: BodyScanResult? = nil) -> [MuscleRecovery] {
+        MuscleGroup.allCases.map { recovery(for: $0, profile: profile, sessions: sessions, at: now, scan: scan) }
     }
 
     static func overallRecovery(_ recoveries: [MuscleRecovery]) -> Double {
