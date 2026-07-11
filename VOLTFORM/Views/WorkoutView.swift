@@ -78,7 +78,7 @@ struct WorkoutView: View {
                             .padding(.horizontal, 10)
                             .padding(.vertical, 5)
                             .background(Color.voltLime)
-                            .foregroundStyle(Color.voltTextDark)
+                            .foregroundStyle(Color.voltOnLime)
                             .clipShape(Capsule())
                     }
                 }
@@ -208,7 +208,7 @@ struct WorkoutView: View {
             case .lift(let workout):
                 Image(systemName: "dumbbell.fill")
                     .font(.system(size: 13))
-                    .foregroundStyle(Color.voltTextDark)
+                    .foregroundStyle(Color.voltOnLime)
                     .frame(width: 30, height: 30)
                     .background(Color.voltLime)
                     .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
@@ -265,7 +265,7 @@ struct WorkoutView: View {
             HStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color.voltTextDark)
+                    .foregroundStyle(Color.voltOnLime)
                     .frame(width: 26, height: 26)
                     .background(Color.voltLime.opacity(0.9))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -325,4 +325,9 @@ struct WorkoutView: View {
             }
         }
     }
+}
+
+#Preview {
+    WorkoutView()
+        .modelContainer(PreviewSupport.container)
 }

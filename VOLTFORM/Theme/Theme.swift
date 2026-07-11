@@ -15,14 +15,18 @@ extension Color {
     static let voltLimeDeep = Color(hex: 0x86B818)
     static let voltViolet = Color(hex: 0x2D1B69)
     static let voltBlack = Color(hex: 0x050505)
-    static let voltOffWhite = Color(hex: 0xFAF8EF)
-    static let voltCard = Color(hex: 0xFFFFFF)
-    static let voltSoftGray = Color(hex: 0xF1F1ED)
-    static let voltTextDark = Color(hex: 0x121212)
-    static let voltTextMuted = Color(hex: 0x777777)
-    static let voltDarkCard = Color(hex: 0x151515)
+    static let voltOffWhite = Color(hex: 0x0A0A09)       // screen background (was off-white)
+    static let voltCard = Color(hex: 0x161614)           // card surface (was white)
+    static let voltSoftGray = Color(hex: 0x1E1E1B)       // muted chip/icon backgrounds (was pale gray)
+    static let voltTextDark = Color(hex: 0xF7F6F0)       // primary text/icons on the new dark surfaces (was near-black)
+    static let voltTextMuted = Color(hex: 0x9C9C95)      // secondary text, lightened for legibility on black
+    static let voltDarkCard = Color(hex: 0x151513)
     static let voltWarning = Color(hex: 0xE8A13C)
     static let voltDanger = Color(hex: 0xE84545)
+    /// Dedicated dark ink for content placed directly on a lime-colored fill
+    /// (buttons, tag pills, selected chips) — kept dark even though
+    /// voltTextDark itself is now light, so lime surfaces stay readable.
+    static let voltOnLime = Color(hex: 0x121212)
 }
 
 extension View {

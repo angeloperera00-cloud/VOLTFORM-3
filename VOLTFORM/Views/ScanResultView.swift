@@ -58,7 +58,7 @@ struct ScanResultView: View {
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
                                         .background(Color.voltLime)
-                                        .foregroundStyle(Color.voltTextDark)
+                                        .foregroundStyle(Color.voltOnLime)
                                         .clipShape(Capsule())
                                 }
                             }
@@ -105,4 +105,9 @@ struct ScanResultView: View {
             }
         }
     }
+}
+
+#Preview {
+    ScanResultView(scan: PreviewSupport.sampleScan, onDone: {})
+        .modelContainer(PreviewSupport.container)
 }

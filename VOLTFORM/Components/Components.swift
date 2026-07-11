@@ -23,8 +23,8 @@ struct PrimaryButton: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 56)
-            .background(style == .black ? Color.voltTextDark : Color.voltLime)
-            .foregroundStyle(style == .black ? Color.white : Color.voltTextDark)
+            .background(style == .black ? Color.voltBlack : Color.voltLime)
+            .foregroundStyle(style == .black ? Color.white : Color.voltOnLime)
             .clipShape(Capsule())
             .opacity(isDisabled ? 0.4 : 1)
         }
@@ -48,15 +48,15 @@ struct OptionCard: View {
                 if let icon {
                     Image(systemName: icon)
                         .font(.system(size: 17, weight: .medium))
-                        .foregroundStyle(Color.voltTextDark)
+                        .foregroundStyle(isSelected ? Color.voltOnLime : Color.voltTextDark)
                         .frame(width: 40, height: 40)
-                        .background(isSelected ? Color.voltTextDark.opacity(0.08) : Color.voltSoftGray)
+                        .background(isSelected ? Color.voltOnLime.opacity(0.08) : Color.voltSoftGray)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(Color.voltTextDark)
+                        .foregroundStyle(isSelected ? Color.voltOnLime : Color.voltTextDark)
                     if let subtitle {
                         Text(subtitle)
                             .font(.system(size: 13))
@@ -66,11 +66,11 @@ struct OptionCard: View {
                 Spacer()
                 ZStack {
                     Circle()
-                        .strokeBorder(isSelected ? Color.voltTextDark : Color.voltTextMuted.opacity(0.35), lineWidth: 1.5)
+                        .strokeBorder(isSelected ? Color.voltOnLime : Color.voltTextMuted.opacity(0.35), lineWidth: 1.5)
                         .frame(width: 22, height: 22)
                     if isSelected {
                         Circle()
-                            .fill(Color.voltTextDark)
+                            .fill(Color.voltOnLime)
                             .frame(width: 12, height: 12)
                     }
                 }
@@ -99,7 +99,7 @@ struct MetricCard: View {
             HStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color.voltTextDark)
+                    .foregroundStyle(Color.voltOnLime)
                     .frame(width: 28, height: 28)
                     .background(Color.voltLime.opacity(0.9))
                     .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
@@ -256,7 +256,7 @@ struct WorkoutExerciseRow: View {
                 if isCompleted {
                     Image(systemName: "checkmark")
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(Color.voltTextDark)
+                        .foregroundStyle(Color.voltOnLime)
                 }
             }
         }
@@ -300,7 +300,7 @@ struct PillSegmentedControl: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 36)
                         .background(selection == index ? (dark ? Color.voltLime : Color.voltCard) : Color.clear)
-                        .foregroundStyle(selection == index ? Color.voltTextDark : (dark ? Color.white.opacity(0.6) : Color.voltTextMuted))
+                        .foregroundStyle(selection == index ? (dark ? Color.voltOnLime : Color.voltTextDark) : (dark ? Color.white.opacity(0.6) : Color.voltTextMuted))
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -343,7 +343,7 @@ struct BottomTabBar: View {
                     .font(.system(size: 21, weight: .semibold))
                     .foregroundStyle(Color.voltLime)
                     .frame(width: 56, height: 56)
-                    .background(Color.voltTextDark)
+                    .background(Color.voltBlack)
                     .clipShape(Circle())
                     .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
             }

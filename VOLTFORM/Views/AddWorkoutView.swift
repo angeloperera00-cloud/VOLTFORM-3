@@ -65,7 +65,7 @@ struct AddWorkoutView: View {
                                         .frame(maxWidth: .infinity)
                                         .frame(height: 68)
                                         .background(selected ? Color.voltLime : Color.voltDarkCard)
-                                        .foregroundStyle(selected ? Color.voltTextDark : .white.opacity(0.75))
+                                        .foregroundStyle(selected ? Color.voltOnLime : .white.opacity(0.75))
                                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                     }
                                     .buttonStyle(.plain)
@@ -167,4 +167,9 @@ struct AddWorkoutView: View {
         try? context.save()
         dismiss()
     }
+}
+
+#Preview {
+    AddWorkoutView()
+        .modelContainer(PreviewSupport.container)
 }

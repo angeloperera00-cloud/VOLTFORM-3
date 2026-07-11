@@ -144,7 +144,7 @@ private struct LevelStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(manager: manager, title: "Your fitness level", subtitle: "Recovery time is personal beginners need more of it.")
+            StepHeader(manager: manager, title: "Your fitness level", subtitle: "Recovery time is personal — beginners need more of it.")
 
             VStack(spacing: 12) {
                 ForEach(FitnessLevel.allCases, id: \.self) { level in
@@ -216,7 +216,7 @@ private struct AboutYouStep: View {
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 46)
                                 .background(manager.gender == gender ? Color.voltLime : Color.voltCard)
-                                .foregroundStyle(Color.voltTextDark)
+                                .foregroundStyle(manager.gender == gender ? Color.voltOnLime : Color.voltTextDark)
                                 .clipShape(Capsule())
                                 .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 3)
                         }
@@ -332,7 +332,7 @@ private struct RecoverySetupStep: View {
                 .frame(height: 42)
                 .frame(maxWidth: .infinity)
                 .background(selected ? Color.voltLime : Color.voltCard)
-                .foregroundStyle(Color.voltTextDark)
+                .foregroundStyle(selected ? Color.voltOnLime : Color.voltTextDark)
                 .clipShape(Capsule())
                 .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 3)
         }
@@ -372,7 +372,7 @@ private struct OnboardingScanStep: View {
             VStack(spacing: 20) {
                 ZStack {
                     ScanCorners()
-                        .stroke(Color.voltTextDark, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                        .stroke(Color.voltLime, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                         .frame(width: 220, height: 300)
                     BodyFigurePlaceholder(dark: false)
                         .frame(height: 220)
@@ -380,7 +380,7 @@ private struct OnboardingScanStep: View {
                 Text("Body scan")
                     .font(.system(size: 26, weight: .bold))
                     .foregroundStyle(Color.voltTextDark)
-                Text("Take a quick photo to analyze your current physique. This helps us fine tune your recovery and performance.")
+                Text("Take a quick photo to analyze your current physique. This helps us fine-tune your recovery and performance.")
                     .font(.system(size: 14))
                     .foregroundStyle(Color.voltTextMuted)
                     .multilineTextAlignment(.center)
@@ -506,7 +506,7 @@ private struct AllSetStep: View {
                     .frame(width: 140, height: 140)
                 Image(systemName: "checkmark")
                     .font(.system(size: 44, weight: .bold))
-                    .foregroundStyle(Color.voltTextDark)
+                    .foregroundStyle(Color.voltOnLime)
                     .frame(width: 96, height: 96)
                     .background(Color.voltLime)
                     .clipShape(Circle())
@@ -535,4 +535,9 @@ private struct AllSetStep: View {
         }
         .padding(24)
     }
+}
+
+#Preview {
+    OnboardingView()
+        .modelContainer(PreviewSupport.container)
 }

@@ -19,7 +19,7 @@ struct WorkoutCompletedView: View {
                         .frame(width: 150, height: 150)
                     Image(systemName: "bolt.fill")
                         .font(.system(size: 40, weight: .bold))
-                        .foregroundStyle(Color.voltTextDark)
+                        .foregroundStyle(Color.voltOnLime)
                         .frame(width: 100, height: 100)
                         .background(Color.voltLime)
                         .clipShape(Circle())
@@ -75,4 +75,9 @@ struct WorkoutCompletedView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
+}
+
+#Preview {
+    WorkoutCompletedView(session: PreviewSupport.sampleSession, onDone: {})
+        .modelContainer(PreviewSupport.container)
 }

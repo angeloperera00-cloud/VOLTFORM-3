@@ -26,7 +26,7 @@ struct WorkoutSummaryView: View {
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
                             .background(Color.voltLime)
-                            .foregroundStyle(Color.voltTextDark)
+                            .foregroundStyle(Color.voltOnLime)
                             .clipShape(Capsule())
                     }
                 }
@@ -67,4 +67,9 @@ struct WorkoutSummaryView: View {
             .padding(24)
         }
     }
+}
+
+#Preview {
+    WorkoutSummaryView(session: PreviewSupport.sampleSession, onDone: {})
+        .modelContainer(PreviewSupport.container)
 }

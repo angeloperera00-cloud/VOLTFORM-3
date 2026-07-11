@@ -59,7 +59,7 @@ struct HomeView: View {
                     Circle().fill(Color.voltLime)
                     Text(String(profile?.firstName.prefix(1) ?? "A"))
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(Color.voltTextDark)
+                        .foregroundStyle(Color.voltOnLime)
                 }
                 .frame(width: 44, height: 44)
             }
@@ -96,7 +96,7 @@ struct HomeView: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(Color.voltLime)
-                    .foregroundStyle(Color.voltTextDark)
+                    .foregroundStyle(Color.voltOnLime)
                     .clipShape(Capsule())
             }
 
@@ -203,7 +203,7 @@ struct HomeView: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(Color.voltLime)
-                    .foregroundStyle(Color.voltTextDark)
+                    .foregroundStyle(Color.voltOnLime)
                     .clipShape(Capsule())
             }
             HStack(alignment: .top, spacing: 14) {
@@ -243,7 +243,7 @@ struct HomeView: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(Color.voltLime)
-                    .foregroundStyle(Color.voltTextDark)
+                    .foregroundStyle(Color.voltOnLime)
                     .clipShape(Capsule())
             }
             HStack(alignment: .top, spacing: 14) {
@@ -251,7 +251,7 @@ struct HomeView: View {
                     Text("Recovery Day")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundStyle(Color.voltTextDark)
-                    Text("Muscle grows while you rest your AI program planned this on purpose.")
+                    Text("Muscle grows while you rest — your AI program planned this on purpose.")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.voltTextMuted)
                 }

@@ -17,6 +17,7 @@ struct MuscleRecoveryCard: View {
 
     private var chipForeground: Color {
         if recovery.warning { return .voltDanger }
+        if recovery.chip == "Great" || recovery.chip == "Good trend" { return .voltOnLime }
         return .voltTextDark
     }
 

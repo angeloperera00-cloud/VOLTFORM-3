@@ -32,6 +32,20 @@ struct ProfileView: View {
                         .background(Color.voltCard)
                         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                         .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 5)
+
+                        VStack(spacing: 0) {
+                            row("Screen Gallery", icon: "square.grid.2x2") { DevGalleryView() }
+                        }
+                        .background(Color.voltCard)
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 5)
+                        .overlay(alignment: .topLeading) {
+                            Text("DEVELOPER")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(Color.voltTextMuted)
+                                .padding(.leading, 4)
+                                .offset(y: -18)
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
@@ -51,7 +65,7 @@ struct ProfileView: View {
                 Circle().fill(Color.voltLime)
                 Text(String(profile.firstName.prefix(1)))
                     .font(.system(size: 26, weight: .bold))
-                    .foregroundStyle(Color.voltTextDark)
+                    .foregroundStyle(Color.voltOnLime)
             }
             .frame(width: 64, height: 64)
 
@@ -231,7 +245,7 @@ struct AppPreferencesView: View {
     var body: some View {
         Form {
             Section("Notifications") {
-                Toggle("Muscle ready reminders", isOn: $notificationsEnabled)
+                Toggle("Muscle-ready reminders", isOn: $notificationsEnabled)
                     .onChange(of: notificationsEnabled) { _, enabled in
                         if enabled { NotificationService.requestAuthorization() }
                         else { NotificationService.cancelAll() }
@@ -292,4 +306,144 @@ struct AboutView: View {
         .navigationTitle("About")
         .navigationBarTitleDisplayMode(.inline)
     }
+}
+
+// MARK: - Developer Screen Gallery
+
+enum GalleryDestination: String, Identifiable, CaseIterable {
+    case splash = "Splash"
+    case onboarding = "Onboarding"
+    case mainTab = "Main App (Tab Bar)"
+    case home = "Home"
+    case workout = "Workout"
+    case recovery = "Recovery"
+    case body = "Body"
+    case profile = "Profile"
+    case workoutSession = "Workout Session"
+    case workoutCompleted = "Workout Completed"
+    case workoutSummary = "Workout Summary"
+    case bodyScan = "Body Scan (camera)"
+    case scanResult = "Scan Result"
+    case addWorkout = "Add Workout"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .splash: return "bolt.fill"
+        case .onboarding: return "list.bullet.rectangle"
+        case .mainTab: return "square.grid.2x2"
+        case .home: return "house"
+        case .workout: return "dumbbell"
+        case .recovery: return "bolt.heart"
+        case .body: return "person.fill.viewfinder"
+        case .profile: return "person"
+        case .workoutSession: return "figure.strengthtraining.traditional"
+        case .workoutCompleted: return "checkmark.seal"
+        case .workoutSummary: return "chart.bar"
+        case .bodyScan: return "camera.viewfinder"
+        case .scanResult: return "doc.text.magnifyingglass"
+        case .addWorkout: return "plus.circle"
+        }
+    }
+
+    var section: String {
+        switch self {
+        case .splash, .onboarding: return "Onboarding"
+        case .mainTab, .home, .workout, .recovery, .body, .profile: return "Main Tabs"
+        case .workoutSession, .workoutCompleted, .workoutSummary: return "Workout Flow"
+        case .bodyScan, .scanResult: return "Body Scan Flow"
+        case .addWorkout: return "Sheets"
+        }
+    }
+}
+
+struct DevGalleryView: View {
+    @Query(sort: \WorkoutSession.startDate, order: .reverse) private var sessions: [WorkoutSession]
+    @Query(sort: \BodyScanResult.date, order: .reverse) private var scans: [BodyScanResult]
+    @Query private var profiles: [UserProfile]
+
+    @State private var destination: GalleryDestination?
+
+    private var sampleSession: WorkoutSession {
+        sessions.first ?? WorkoutSession(name: "Push Day")
+    }
+
+    private var sampleScan: BodyScanResult {
+        scans.first ?? BodyAnalysisEngine.analyze(profile: profiles.first ?? UserProfile())
+    }
+
+    var body: some View {
+        List {
+            ForEach(Array(Dictionary(grouping: GalleryDestination.allCases, by: \.section).sorted(by: { $0.key < $1.key })), id: \.key) { section, items in
+                Section(section) {
+                    ForEach(items) { item in
+                        Button {
+                            destination = item
+                        } label: {
+                            HStack(spacing: 14) {
+                                Image(systemName: item.icon)
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(Color.voltTextDark)
+                                    .frame(width: 32, height: 32)
+                                    .background(Color.voltSoftGray)
+                                    .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                                Text(item.rawValue)
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(Color.voltTextDark)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(Color.voltTextMuted.opacity(0.6))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Screen Gallery")
+        .navigationBarTitleDisplayMode(.inline)
+        .fullScreenCover(item: $destination) { item in
+            galleryDestinationView(item)
+        }
+    }
+
+    @ViewBuilder
+    private func galleryDestinationView(_ item: GalleryDestination) -> some View {
+        switch item {
+        case .splash:
+            SplashView()
+        case .onboarding:
+            OnboardingView()
+        case .mainTab:
+            MainTabView()
+        case .home:
+            HomeView(switchTab: { _ in })
+        case .workout:
+            WorkoutView()
+        case .recovery:
+            RecoveryView()
+        case .body:
+            BodyView()
+        case .profile:
+            ProfileView()
+        case .workoutSession:
+            WorkoutSessionView(session: sampleSession)
+        case .workoutCompleted:
+            WorkoutCompletedView(session: sampleSession, onDone: { destination = nil })
+        case .workoutSummary:
+            WorkoutSummaryView(session: sampleSession, onDone: { destination = nil })
+        case .bodyScan:
+            BodyScanView()
+        case .scanResult:
+            ScanResultView(scan: sampleScan, onDone: { destination = nil })
+        case .addWorkout:
+            AddWorkoutView()
+        }
+    }
+}
+
+#Preview {
+    ProfileView()
+        .modelContainer(PreviewSupport.container)
 }

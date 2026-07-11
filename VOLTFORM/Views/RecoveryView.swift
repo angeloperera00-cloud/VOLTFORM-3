@@ -26,7 +26,7 @@ struct RecoveryView: View {
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
                             .background(Color.voltLime)
-                            .foregroundStyle(Color.voltTextDark)
+                            .foregroundStyle(Color.voltOnLime)
                             .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -71,7 +71,7 @@ struct RecoveryView: View {
             HStack(spacing: 20) {
                 RecoveryRing(percentage: overall, size: 104, caption: overall >= 70 ? "Good" : (overall >= 45 ? "Average" : "Low"))
                 VStack(alignment: .leading, spacing: 12) {
-                    overviewRow(icon: "moon.fill", label: "Sleep", value: VoltFormat.hoursMinutes(sleepAvg), delta: "3day avg", deltaColor: .voltTextMuted)
+                    overviewRow(icon: "moon.fill", label: "Sleep", value: VoltFormat.hoursMinutes(sleepAvg), delta: "3-day avg", deltaColor: .voltTextMuted)
                     overviewRow(icon: "drop.fill", label: "Hydration", value: profile.hydration.rawValue, delta: profile.hydration == .good ? "+3%" : (profile.hydration == .low ? "+6% slower" : "—"), deltaColor: profile.hydration == .good ? .voltLimeDeep : .voltWarning)
                     overviewRow(icon: "waveform.path.ecg", label: "Soreness", value: profile.soreness.rawValue, delta: profile.soreness == .low ? "-2%" : (profile.soreness == .high ? "+20% slower" : "+5%"), deltaColor: profile.soreness == .low ? .voltLimeDeep : .voltWarning)
                 }
@@ -161,7 +161,7 @@ struct RecoveryCheckInSheet: View {
                 )
             }
 
-            PrimaryButton(title: "Save Check in") {
+            PrimaryButton(title: "Save Check-in") {
                 let checkIn = DailyRecoveryCheckIn(date: .now, sleepHours: sleepHours, hydration: hydration, soreness: soreness)
                 context.insert(checkIn)
                 if let profile = profiles.first {
@@ -176,4 +176,9 @@ struct RecoveryCheckInSheet: View {
         .padding(24)
         .presentationBackground(Color.voltOffWhite)
     }
+}
+
+#Preview {
+    RecoveryView()
+        .modelContainer(PreviewSupport.container)
 }
