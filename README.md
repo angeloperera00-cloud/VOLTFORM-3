@@ -1,20 +1,19 @@
-# VOLTFORM ⚡
+⚡ VOLTFORM ⚡
 
 A premium SwiftUI fitness prototype focused on **AI-personalized training programs, body analysis, muscle recovery forecasting, and progress tracking**. No meal plans, no nutrition, no login, no backend  everything runs locally.
 
 ## Requirements
 
-- Xcode 15.4+ (Xcode 16 recommended)
 - iOS 17.0+ deployment target (SwiftData + Swift Charts + `@Observable`)
 - No external packages — everything uses Apple frameworks only
 
 The camera preview works on a real device; on the simulator the body scan falls back to a simulated scan animation, and everything else works identically.
 
-## AI Program Engine
+AI Program Engine
 
 `AIProgramEngine` generates a complete, individualized program from the body scan and profile:
 
-## Architecture (MVVM + Services)
+Architecture (MVVM + Services)
 
 ```
 VOLTFORM/
@@ -40,8 +39,7 @@ VOLTFORM/
     ├── RecoveryAndBodyViews   Recovery forecast, Body screen, Scan Result
     └── Body/                  AVFoundation body-scan camera placeholder
 ```
-
-## The RecoveryEngine ⭐
+⭐ The RecoveryEngine ⭐
 
 Recovery is **never the same for two users**. For every muscle:
 
@@ -65,10 +63,10 @@ Each muscle card shows the percentage, status, **"Ready by" forecast**, a 7-day 
 
 Every completed set in a workout session persists (exercise, muscle group, sets, reps, weight, duration, timestamp) and feeds straight back into the engine.
 
-## Swapping in real ML later
+Swapping in real ML later
 
 `BodyAnalysisEngine` conforms to `BodyAnalyzing`. Replace the mock with a Vision/CoreML implementation that returns the same `BodyScanResult` and nothing else changes — the plan generator and recovery engine already consume its output (body type, weak muscles, etc.).
 
-## Sample data
+Sample data
 
 On first launch `StorageService` seeds a realistic week of sessions (a heavy leg day yesterday, pull/push days before that) plus sleep check-ins, so the Recovery screen immediately shows differentiated per-muscle states. Real logged workouts replace the picture over time.
