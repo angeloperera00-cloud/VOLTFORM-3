@@ -1,6 +1,6 @@
 # VOLTFORM ⚡
 
-A premium SwiftUI fitness prototype focused on **AI-personalized training programs, body analysis, muscle recovery forecasting, and progress tracking**. No meal plans, no nutrition, no login, no backend — everything runs locally.
+A premium SwiftUI fitness prototype focused on **AI-personalized training programs, body analysis, muscle recovery forecasting, and progress tracking**. No meal plans, no nutrition, no login, no backend  everything runs locally.
 
 ## Requirements
 
