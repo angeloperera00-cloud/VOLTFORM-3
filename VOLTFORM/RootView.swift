@@ -29,3 +29,8 @@ struct RootView: View {
         }
     }
 }
+
+#Preview {
+    RootView()
+        .modelContainer(PreviewSupport.container)
+}
