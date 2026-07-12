@@ -317,6 +317,7 @@ struct PillSegmentedControl: View {
 enum VoltTab: String, CaseIterable {
     case home = "Home"
     case workout = "Workout"
+    case body = "Twin"
     case recovery = "Recovery"
     case profile = "Profile"
 
@@ -324,21 +325,27 @@ enum VoltTab: String, CaseIterable {
         switch self {
         case .home: return "house"
         case .workout: return "dumbbell"
+        case .body: return "person.2"
         case .recovery: return "bolt.heart"
         case .profile: return "person"
         }
+    }
+
+    /// Icon shown when this tab is selected. All icons here have a proper
+    /// ".fill" counterpart.
+    var selectedIcon: String {
+        "\(icon).fill"
     }
 }
 
 struct BottomTabBar: View {
     @Binding var selected: VoltTab
-    let onBodyScan: () -> Void
 
     var body: some View {
         HStack(alignment: .bottom) {
             tabButton(.home)
             tabButton(.workout)
-            scanButton
+            tabButton(.body)
             tabButton(.recovery)
             tabButton(.profile)
         }
@@ -359,7 +366,7 @@ struct BottomTabBar: View {
             selected = tab
         } label: {
             VStack(spacing: 4) {
-                Image(systemName: selected == tab ? "\(tab.icon).fill" : tab.icon)
+                Image(systemName: selected == tab ? tab.selectedIcon : tab.icon)
                     .font(.system(size: 20, weight: .medium))
                 Text(tab.rawValue)
                     .font(.system(size: 10, weight: .medium))
@@ -368,26 +375,6 @@ struct BottomTabBar: View {
                     .frame(width: 16, height: 3)
             }
             .foregroundStyle(selected == tab ? Color.voltTextDark : Color.voltTextMuted)
-            .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.plain)
-    }
-
-    /// Same icon+label+underline layout and sizing as the other tabs, but
-    /// always lime-tinted since this is an action button, not a navigable
-    /// tab with a selected/unselected state.
-    private var scanButton: some View {
-        Button(action: onBodyScan) {
-            VStack(spacing: 4) {
-                Image(systemName: "figure.stand")
-                    .font(.system(size: 20, weight: .medium))
-                Text("Scan")
-                    .font(.system(size: 10, weight: .medium))
-                Capsule()
-                    .fill(Color.clear)
-                    .frame(width: 16, height: 3)
-            }
-            .foregroundStyle(Color.voltTextMuted)
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)

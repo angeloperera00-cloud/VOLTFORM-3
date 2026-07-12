@@ -2,7 +2,6 @@ import SwiftUI
 import SwiftData
 
 struct BodyView: View {
-    @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [UserProfile]
     @Query(sort: \BodyScanResult.date, order: .reverse) private var scans: [BodyScanResult]
 
@@ -18,18 +17,8 @@ struct BodyView: View {
 
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
-                    Button { dismiss() } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 36, height: 36)
-                            .background(Color.white.opacity(0.1))
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    Spacer()
-                    Text("Your Body")
-                        .font(.system(size: 17, weight: .bold))
+                    Text("Your Twin")
+                        .font(.system(size: 26, weight: .bold))
                         .foregroundStyle(.white)
                     Spacer()
                     Button { showScan = true } label: {
@@ -209,7 +198,7 @@ struct BodyView: View {
                             .frame(width: 26, alignment: .trailing)
                     }
                 }
-                Text("Estimated from your latest scan the AI program adds sets where bars are low.")
+                Text("Estimated from your latest scan — the AI program adds sets where bars are low.")
                     .font(.system(size: 11))
                     .foregroundStyle(.white.opacity(0.4))
             }

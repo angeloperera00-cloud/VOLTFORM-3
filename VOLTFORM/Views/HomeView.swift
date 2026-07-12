@@ -26,7 +26,7 @@ struct HomeView: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 26) {
                 header
                 if let profile {
                     todaysPlanCard(profile: profile)
@@ -214,7 +214,7 @@ struct HomeView: View {
                     Text("\(minutes) min · Zone 2 effort")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.voltTextMuted)
-                    Text("Your AI program scheduled cardio today lifting muscles get a chance to recover.")
+                    Text("Your AI program scheduled cardio today. Lifting muscles get a chance to recover.")
                         .font(.system(size: 12))
                         .foregroundStyle(Color.voltTextDark)
                 }
@@ -251,7 +251,7 @@ struct HomeView: View {
                     Text("Recovery Day")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundStyle(Color.voltTextDark)
-                    Text("Muscle grows while you rest your AI program planned this on purpose.")
+                    Text("Muscle grows while you rest. Your AI program planned this on purpose.")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.voltTextMuted)
                 }
@@ -273,7 +273,7 @@ struct HomeView: View {
         let overall = RecoveryEngine.overallRecovery(recoveries)
         let sleepAvg = RecoveryEngine.sleepThreeDayAverage(checkIns: checkIns, fallback: profile.sleepAverage.hours)
 
-        return VStack(alignment: .leading, spacing: 12) {
+        return VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("Today's Overview")
                     .font(.system(size: 17, weight: .bold))
@@ -284,7 +284,7 @@ struct HomeView: View {
                     .foregroundStyle(Color.voltTextMuted)
             }
 
-            HStack(spacing: 12) {
+            HStack(spacing: 14) {
                 Button { switchTab(.recovery) } label: {
                     MetricCard(
                         icon: "bolt.heart",
@@ -295,9 +295,9 @@ struct HomeView: View {
                     )
                 }
                 .buttonStyle(.plain)
-                MetricCard(icon: "moon.fill", title: "Sleep", value: VoltFormat.hoursMinutes(sleepAvg), caption: "3-day average")
+                MetricCard(icon: "moon.fill", title: "Sleep", value: VoltFormat.hoursMinutes(sleepAvg), caption: "3 day average")
             }
-            HStack(spacing: 12) {
+            HStack(spacing: 14) {
                 MetricCard(icon: "waveform.path.ecg", title: "Soreness", value: profile.soreness.rawValue, caption: profile.soreness == .low ? "Feeling fresh" : "Take it easy", captionColor: profile.soreness == .high ? .voltDanger : .voltLimeDeep)
                 MetricCard(icon: "drop.fill", title: "Hydration", value: profile.hydration.rawValue, caption: profile.hydration == .good ? "Keep it up" : "Drink more", captionColor: profile.hydration == .low ? .voltWarning : .voltLimeDeep)
             }
