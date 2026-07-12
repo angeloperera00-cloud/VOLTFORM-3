@@ -9,6 +9,7 @@ struct WorkoutView: View {
 
     @State private var segment = 0
     @State private var activeSession: WorkoutSession?
+    @State private var selectedExercises: Set<String> = []
 
     private var profile: UserProfile? { profiles.first }
 
@@ -46,18 +47,71 @@ struct WorkoutView: View {
 
     // MARK: Today
 
-    private func todaysWorkout(profile: UserProfile) -> PlannedWorkout {
+    private func todaysDayPlan(profile: UserProfile) -> DayPlan {
         let recoveries = RecoveryEngine.allRecoveries(profile: profile, sessions: sessions, scan: scans.first)
-        return AIProgramEngine.todaysWorkout(profile: profile, scan: scans.first, recoveries: recoveries, sessions: sessions)
+        return AIProgramEngine.todaysPlan(profile: profile, scan: scans.first, recoveries: recoveries, sessions: sessions)
     }
 
-    /// Today's live/completed session matching the plan, if one exists.
     private func todaysSession(named name: String) -> WorkoutSession? {
         sessions.first { $0.name == name && Calendar.current.isDateInToday($0.startDate) }
     }
 
+    @ViewBuilder
     private func todaySection(profile: UserProfile) -> some View {
-        let workout = todaysWorkout(profile: profile)
+        switch todaysDayPlan(profile: profile) {
+        case .lift(let workout):
+            liftTodaySection(workout: workout)
+        case .cardio(let type, let minutes):
+            cardioTodaySection(type: type, minutes: minutes)
+        case .rest:
+            restTodaySection
+        }
+    }
+
+    private func cardioTodaySection(type: CardioType, minutes: Int) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(type.rawValue)
+                        .font(.system(size: 21, weight: .bold))
+                        .foregroundStyle(Color.voltTextDark)
+                    Text("\(minutes) min · Zone 2 effort")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Color.voltTextMuted)
+                }
+                Spacer()
+                Image(systemName: type.icon)
+                    .font(.system(size: 32))
+                    .foregroundStyle(Color.voltLimeDeep)
+            }
+            Text("Your AI program scheduled cardio today. Lifting muscles get a chance to recover.")
+                .font(.system(size: 13))
+                .foregroundStyle(Color.voltTextMuted)
+        }
+        .voltCard()
+    }
+
+    private var restTodaySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Recovery Day")
+                        .font(.system(size: 21, weight: .bold))
+                        .foregroundStyle(Color.voltTextDark)
+                }
+                Spacer()
+                Image(systemName: "moon.zzz.fill")
+                    .font(.system(size: 32))
+                    .foregroundStyle(Color.voltLimeDeep)
+            }
+            Text("Muscle grows while you rest. Your AI program planned this on purpose.")
+                .font(.system(size: 13))
+                .foregroundStyle(Color.voltTextMuted)
+        }
+        .voltCard()
+    }
+
+    private func liftTodaySection(workout: PlannedWorkout) -> some View {
         let session = todaysSession(named: workout.name)
 
         return VStack(alignment: .leading, spacing: 14) {
@@ -87,20 +141,39 @@ struct WorkoutView: View {
 
                 VStack(spacing: 0) {
                     ForEach(Array(workout.exercises.enumerated()), id: \.element.id) { index, exercise in
-                        let done = isExerciseDone(exercise.name, in: session)
-                        Button {
-                            guard session?.isCompleted != true else { return }
-                            beginOrContinue(workout: workout, session: session)
-                        } label: {
-                            WorkoutExerciseRow(
-                                index: index + 1,
-                                name: exercise.name,
-                                detail: "\(exercise.sets) sets × \(exercise.repRange)",
-                                isCompleted: done
-                            )
+                        if let session {
+                            let done = isExerciseDone(exercise.name, in: session)
+                            Button {
+                                guard !session.isCompleted else { return }
+                                beginOrContinue(workout: workout, session: session)
+                            } label: {
+                                WorkoutExerciseRow(
+                                    index: index + 1,
+                                    name: exercise.name,
+                                    detail: "\(exercise.sets) sets × \(exercise.repRange)",
+                                    isCompleted: done
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(session.isCompleted)
+                        } else {
+                            let selected = selectedExercises.contains(exercise.name)
+                            Button {
+                                if selected {
+                                    selectedExercises.remove(exercise.name)
+                                } else {
+                                    selectedExercises.insert(exercise.name)
+                                }
+                            } label: {
+                                WorkoutExerciseRow(
+                                    index: index + 1,
+                                    name: exercise.name,
+                                    detail: "\(exercise.sets) sets × \(exercise.repRange)",
+                                    isCompleted: selected
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
-                        .disabled(session?.isCompleted == true)
                     }
                 }
 
@@ -117,12 +190,21 @@ struct WorkoutView: View {
                 }
 
                 if session?.isCompleted != true {
-                    PrimaryButton(title: session == nil ? "Start Workout" : "Continue Workout", icon: "play.fill") {
+                    PrimaryButton(
+                        title: session == nil ? "Start Workout" : "Continue Workout",
+                        icon: "play.fill",
+                        style: .lime
+                    ) {
                         beginOrContinue(workout: workout, session: session)
                     }
                 }
             }
             .voltCard()
+        }
+        .onAppear {
+            if session == nil && selectedExercises.isEmpty {
+                selectedExercises = Set(workout.exercises.map(\.name))
+            }
         }
     }
 

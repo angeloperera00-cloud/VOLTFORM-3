@@ -12,6 +12,9 @@ struct HomeView: View {
 
     @State private var activeSession: WorkoutSession?
     @State private var selectedExerciseIndex: Int = 0
+    @State private var showSleepAdjust = false
+    @State private var showHydrationAdjust = false
+    @State private var showSorenessAdjust = false
 
     private var profile: UserProfile? { profiles.first }
 
@@ -40,6 +43,18 @@ struct HomeView: View {
         .background(Color.voltOffWhite)
         .fullScreenCover(item: $activeSession) { session in
             WorkoutSessionView(session: session)
+        }
+        .sheet(isPresented: $showSleepAdjust) {
+            SleepAdjustSheet()
+                .presentationDetents([.medium])
+        }
+        .sheet(isPresented: $showHydrationAdjust) {
+            HydrationAdjustSheet()
+                .presentationDetents([.medium])
+        }
+        .sheet(isPresented: $showSorenessAdjust) {
+            SorenessAdjustSheet()
+                .presentationDetents([.medium])
         }
     }
 
@@ -273,6 +288,10 @@ struct HomeView: View {
         let overall = RecoveryEngine.overallRecovery(recoveries)
         let sleepAvg = RecoveryEngine.sleepThreeDayAverage(checkIns: checkIns, fallback: profile.sleepAverage.hours)
 
+        let sleepImpact = recoveryImpact(profile.sleepAverage.recoveryMultiplier)
+        let hydrationImpact = recoveryImpact(profile.hydration.recoveryMultiplier)
+        let sorenessImpact = recoveryImpact(profile.soreness.recoveryMultiplier)
+
         return VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("Today's Overview")
@@ -290,17 +309,291 @@ struct HomeView: View {
                         icon: "bolt.heart",
                         title: "Recovery",
                         value: "\(Int(overall.rounded()))%",
-                        caption: overall >= 70 ? "Good" : (overall >= 45 ? "Average" : "Low"),
+                        caption: recoveryLimiterCaption(profile: profile),
                         captionColor: overall >= 70 ? .voltLimeDeep : (overall >= 45 ? .voltWarning : .voltDanger)
                     )
                 }
                 .buttonStyle(.plain)
-                MetricCard(icon: "moon.fill", title: "Sleep", value: VoltFormat.hoursMinutes(sleepAvg), caption: "3 day average")
+                Button { showSleepAdjust = true } label: {
+                    MetricCard(icon: "moon.fill", title: "Sleep", value: VoltFormat.hoursMinutes(sleepAvg), caption: sleepImpact.text, captionColor: sleepImpact.color)
+                }
+                .buttonStyle(.plain)
             }
             HStack(spacing: 14) {
-                MetricCard(icon: "waveform.path.ecg", title: "Soreness", value: profile.soreness.rawValue, caption: profile.soreness == .low ? "Feeling fresh" : "Take it easy", captionColor: profile.soreness == .high ? .voltDanger : .voltLimeDeep)
-                MetricCard(icon: "drop.fill", title: "Hydration", value: profile.hydration.rawValue, caption: profile.hydration == .good ? "Keep it up" : "Drink more", captionColor: profile.hydration == .low ? .voltWarning : .voltLimeDeep)
+                Button { showSorenessAdjust = true } label: {
+                    MetricCard(icon: "waveform.path.ecg", title: "Soreness", value: profile.soreness.rawValue, caption: sorenessImpact.text, captionColor: sorenessImpact.color)
+                }
+                .buttonStyle(.plain)
+                Button { showHydrationAdjust = true } label: {
+                    MetricCard(icon: "drop.fill", title: "Hydration", value: profile.hydration.rawValue, caption: hydrationImpact.text, captionColor: hydrationImpact.color)
+                }
+                .buttonStyle(.plain)
             }
+        }
+    }
+
+    /// Translates a recovery multiplier (from SleepAverage/HydrationLevel/
+    /// SorenessLevel — the same values RecoveryEngine actually multiplies
+    /// into every "ready by" calculation) into a plain-language caption, so
+    /// what's shown here always matches what's driving the real numbers.
+    private func recoveryImpact(_ multiplier: Double) -> (text: String, color: Color) {
+        let percent = Int(((multiplier - 1.0) * 100).rounded())
+        if percent > 0 { return ("Slows recovery \(percent)%", .voltWarning) }
+        if percent < 0 { return ("Speeds recovery \(-percent)%", .voltLimeDeep) }
+        return ("Optimal for recovery", .voltLimeDeep)
+    }
+
+    /// Names whichever factor is currently doing the most damage to
+    /// recovery, so the Recovery card itself explains *why* the percentage
+    /// is what it is instead of just restating it.
+    private func recoveryLimiterCaption(profile: UserProfile) -> String {
+        let factors: [(name: String, multiplier: Double)] = [
+            ("Sleep", profile.sleepAverage.recoveryMultiplier),
+            ("Hydration", profile.hydration.recoveryMultiplier),
+            ("Soreness", profile.soreness.recoveryMultiplier)
+        ]
+        if let worst = factors.max(by: { $0.multiplier < $1.multiplier }), worst.multiplier > 1.0 {
+            return "\(worst.name) is holding you back"
+        }
+        return "All factors optimal"
+    }
+}
+
+// MARK: - Sleep adjustment sheet
+
+private struct SleepAdjustSheet: View {
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
+    @Query private var profiles: [UserProfile]
+    @Query(sort: \DailyRecoveryCheckIn.date, order: .reverse) private var checkIns: [DailyRecoveryCheckIn]
+
+    @State private var sleepHours: Double = 7.5
+
+    private var profile: UserProfile? { profiles.first }
+
+    /// Maps raw hours to the SleepAverage bucket the recovery engine's
+    /// multiplier actually reads from.
+    private var derivedSleepAverage: SleepAverage {
+        if sleepHours >= 8.25 { return .eightPlus }
+        if sleepHours >= 6.5 { return .sevenToEight }
+        return .fiveToSix
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Adjust Sleep")
+                    .font(.system(size: 21, weight: .bold))
+                    .foregroundStyle(Color.voltTextDark)
+                Text("How many hours did you sleep last night?")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.voltTextMuted)
+            }
+
+            VStack(spacing: 10) {
+                Text(VoltFormat.hoursMinutes(sleepHours))
+                    .font(.system(size: 40, weight: .bold))
+                    .foregroundStyle(Color.voltLimeDeep)
+                Slider(value: $sleepHours, in: 3...12, step: 0.25)
+                    .tint(Color.voltLime)
+                Text(sleepHours < 6.5 ? "Below 6.5h slows muscle recovery" : "Good range for recovery")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(sleepHours < 6.5 ? Color.voltWarning : Color.voltLimeDeep)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(20)
+            .background(Color.voltCard)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+
+            PrimaryButton(title: "Save", style: .lime) {
+                let checkIn = DailyRecoveryCheckIn(
+                    date: .now,
+                    sleepHours: sleepHours,
+                    hydration: profile?.hydration ?? .good,
+                    soreness: profile?.soreness ?? .low,
+                    waterGlasses: checkIns.first?.waterGlasses ?? 6
+                )
+                context.insert(checkIn)
+                profile?.sleepAverage = derivedSleepAverage
+                try? context.save()
+                dismiss()
+            }
+        }
+        .padding(24)
+        .presentationBackground(Color.voltOffWhite)
+        .onAppear {
+            if let latest = checkIns.first {
+                sleepHours = latest.sleepHours
+            }
+        }
+    }
+}
+
+// MARK: - Hydration adjustment sheet
+
+private struct HydrationAdjustSheet: View {
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
+    @Query private var profiles: [UserProfile]
+    @Query(sort: \DailyRecoveryCheckIn.date, order: .reverse) private var checkIns: [DailyRecoveryCheckIn]
+
+    @State private var glasses: Int = 6
+
+    private var profile: UserProfile? { profiles.first }
+
+    /// Maps a glasses-of-water count to the app's HydrationLevel bucket,
+    /// which is what the recovery engine actually uses in its calculations.
+    private var derivedLevel: HydrationLevel {
+        if glasses >= 8 { return .good }
+        if glasses >= 4 { return .moderate }
+        return .low
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Adjust Hydration")
+                    .font(.system(size: 21, weight: .bold))
+                    .foregroundStyle(Color.voltTextDark)
+                Text("How many glasses of water have you had today?")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.voltTextMuted)
+            }
+
+            VStack(spacing: 16) {
+                HStack(spacing: 24) {
+                    Button {
+                        if glasses > 0 { glasses -= 1 }
+                    } label: {
+                        Image(systemName: "minus")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(Color.voltTextDark)
+                            .frame(width: 44, height: 44)
+                            .background(Color.voltSoftGray)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+
+                    VStack(spacing: 2) {
+                        Text("\(glasses)")
+                            .font(.system(size: 40, weight: .bold))
+                            .foregroundStyle(Color.voltLimeDeep)
+                        Text(glasses == 1 ? "glass" : "glasses")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.voltTextMuted)
+                    }
+                    .frame(minWidth: 90)
+
+                    Button {
+                        if glasses < 20 { glasses += 1 }
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(Color.voltTextDark)
+                            .frame(width: 44, height: 44)
+                            .background(Color.voltSoftGray)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Text("\(derivedLevel.rawValue) hydration")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.voltLimeDeep)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(20)
+            .background(Color.voltCard)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+
+            PrimaryButton(title: "Save", style: .lime) {
+                let checkIn = DailyRecoveryCheckIn(
+                    date: .now,
+                    sleepHours: checkIns.first?.sleepHours ?? profile?.sleepAverage.hours ?? 7.5,
+                    hydration: derivedLevel,
+                    soreness: profile?.soreness ?? .low,
+                    waterGlasses: glasses
+                )
+                context.insert(checkIn)
+                profile?.hydration = derivedLevel
+                try? context.save()
+                dismiss()
+            }
+        }
+        .padding(24)
+        .presentationBackground(Color.voltOffWhite)
+        .onAppear {
+            if let latest = checkIns.first {
+                glasses = latest.waterGlasses
+            }
+        }
+    }
+}
+
+// MARK: - Soreness adjustment sheet
+
+private struct SorenessAdjustSheet: View {
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
+    @Query private var profiles: [UserProfile]
+    @Query(sort: \DailyRecoveryCheckIn.date, order: .reverse) private var checkIns: [DailyRecoveryCheckIn]
+
+    @State private var soreness: SorenessLevel = .low
+
+    private var profile: UserProfile? { profiles.first }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Adjust Soreness")
+                    .font(.system(size: 21, weight: .bold))
+                    .foregroundStyle(Color.voltTextDark)
+                Text("How sore are your muscles feeling right now?")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.voltTextMuted)
+            }
+
+            VStack(spacing: 12) {
+                ForEach(SorenessLevel.allCases, id: \.self) { level in
+                    Button {
+                        soreness = level
+                    } label: {
+                        HStack {
+                            Text(level.rawValue)
+                                .font(.system(size: 15, weight: .semibold))
+                            Spacer()
+                            if soreness == level {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 13, weight: .bold))
+                            }
+                        }
+                        .padding(16)
+                        .background(soreness == level ? Color.voltLime : Color.voltCard)
+                        .foregroundStyle(soreness == level ? Color.voltOnLime : Color.voltTextDark)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            PrimaryButton(title: "Save", style: .lime) {
+                let checkIn = DailyRecoveryCheckIn(
+                    date: .now,
+                    sleepHours: checkIns.first?.sleepHours ?? profile?.sleepAverage.hours ?? 7.5,
+                    hydration: profile?.hydration ?? .good,
+                    soreness: soreness,
+                    waterGlasses: checkIns.first?.waterGlasses ?? 6
+                )
+                context.insert(checkIn)
+                profile?.soreness = soreness
+                try? context.save()
+                dismiss()
+            }
+        }
+        .padding(24)
+        .presentationBackground(Color.voltOffWhite)
+        .onAppear {
+            soreness = profile?.soreness ?? .low
         }
     }
 }

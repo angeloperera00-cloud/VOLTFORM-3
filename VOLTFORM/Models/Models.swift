@@ -320,12 +320,14 @@ final class DailyRecoveryCheckIn {
     var sleepHours: Double
     var hydrationRaw: String
     var sorenessRaw: String
+    var waterGlasses: Int
 
-    init(date: Date, sleepHours: Double, hydration: HydrationLevel, soreness: SorenessLevel) {
+    init(date: Date, sleepHours: Double, hydration: HydrationLevel, soreness: SorenessLevel, waterGlasses: Int = 6) {
         self.date = date
         self.sleepHours = sleepHours
         self.hydrationRaw = hydration.rawValue
         self.sorenessRaw = soreness.rawValue
+        self.waterGlasses = waterGlasses
     }
 
     var hydration: HydrationLevel { HydrationLevel(rawValue: hydrationRaw) ?? .good }
