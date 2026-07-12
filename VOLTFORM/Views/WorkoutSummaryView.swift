@@ -48,14 +48,9 @@ struct WorkoutSummaryView: View {
                 Spacer()
 
                 DarkWorkoutCard {
-                    HStack(spacing: 12) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 16))
-                            .foregroundStyle(Color.voltLime)
-                        Text("Great workout! You hit all your target muscles.")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.85))
-                    }
+                    Text("Great workout! You hit all your target muscles.")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.85))
                 }
                 .padding(.bottom, 16)
 

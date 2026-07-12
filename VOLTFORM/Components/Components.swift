@@ -379,15 +379,15 @@ struct BottomTabBar: View {
     private var scanButton: some View {
         Button(action: onBodyScan) {
             VStack(spacing: 4) {
-                Image(systemName: "person.fill.viewfinder")
+                Image(systemName: "figure.stand")
                     .font(.system(size: 20, weight: .medium))
                 Text("Scan")
                     .font(.system(size: 10, weight: .medium))
                 Capsule()
-                    .fill(Color.voltLime)
+                    .fill(Color.clear)
                     .frame(width: 16, height: 3)
             }
-            .foregroundStyle(Color.voltLime)
+            .foregroundStyle(Color.voltTextMuted)
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)

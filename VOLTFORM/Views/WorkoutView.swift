@@ -148,21 +148,13 @@ struct WorkoutView: View {
         return VStack(spacing: 14) {
             // Split header
             VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color.voltLime)
-                        .frame(width: 30, height: 30)
-                        .background(Color.voltBlack)
-                        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("AI Program · \(program.split.rawValue)")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(Color.voltTextDark)
-                        Text("Built for your \(scans.first?.bodyType.rawValue ?? profile.currentBodyType.rawValue) body → \(profile.dreamBody.rawValue) goal")
-                            .font(.system(size: 12))
-                            .foregroundStyle(Color.voltTextMuted)
-                    }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("AI Program · \(program.split.rawValue)")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(Color.voltTextDark)
+                    Text("Built for your \(scans.first?.bodyType.rawValue ?? profile.currentBodyType.rawValue) body → \(profile.dreamBody.rawValue) goal")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.voltTextMuted)
                 }
                 Text(program.split.rationale)
                     .font(.system(size: 13))
@@ -193,15 +185,9 @@ struct WorkoutView: View {
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(Color.voltTextDark)
                 ForEach(Array(program.coachNotes.enumerated()), id: \.offset) { _, note in
-                    HStack(alignment: .top, spacing: 10) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color.voltLimeDeep)
-                            .padding(.top, 2)
-                        Text(note)
-                            .font(.system(size: 13))
-                            .foregroundStyle(Color.voltTextMuted)
-                    }
+                    Text(note)
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.voltTextMuted)
                 }
             }
             .voltCard()

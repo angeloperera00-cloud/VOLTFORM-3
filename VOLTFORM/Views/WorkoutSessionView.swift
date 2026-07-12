@@ -60,14 +60,9 @@ struct WorkoutSessionView: View {
                             } else {
                                 selectors
                                 if let overloadHint {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "sparkles")
-                                            .font(.system(size: 11))
-                                            .foregroundStyle(Color.voltLime)
-                                        Text(overloadHint)
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundStyle(.white.opacity(0.6))
-                                    }
+                                    Text(overloadHint)
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(.white.opacity(0.6))
                                 }
                             }
                         }
