@@ -55,7 +55,7 @@ struct ProfileView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
-                .padding(.bottom, 24)
+                .padding(.bottom, 100)
             }
             .background(Color.voltOffWhite)
             .toolbar(.hidden, for: .navigationBar)
@@ -116,29 +116,249 @@ struct ProfileView: View {
     }
 }
 
+// MARK: - Shared detail-screen building blocks
+
+/// Custom back button + title, replacing the native navigation bar so text
+/// color is always explicit rather than dependent on system appearance
+/// resolution (which doesn't reliably inherit dark mode in every context).
+private struct DetailHeader: View {
+    @Environment(\.dismiss) private var dismiss
+    let title: String
+
+    var body: some View {
+        HStack {
+            Button { dismiss() } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Color.voltTextDark)
+                    .frame(width: 36, height: 36)
+                    .background(Color.voltCard)
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            Spacer()
+            Text(title)
+                .font(.system(size: 17, weight: .bold))
+                .foregroundStyle(Color.voltTextDark)
+            Spacer()
+            Color.clear.frame(width: 36, height: 36)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
+    }
+}
+
+private struct DetailSection<Content: View>: View {
+    let title: String
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title.uppercased())
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(Color.voltTextMuted)
+                .padding(.leading, 4)
+            VStack(spacing: 0) {
+                content
+            }
+            .background(Color.voltCard)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+    }
+}
+
+/// One tappable option inside a DetailSection, with a checkmark when selected.
+private struct SelectableRow: View {
+    let title: String
+    let isSelected: Bool
+    let showDivider: Bool
+    let action: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: action) {
+                HStack {
+                    Text(title)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(Color.voltTextDark)
+                    Spacer()
+                    if isSelected {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(Color.voltLimeDeep)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+            }
+            .buttonStyle(.plain)
+            if showDivider {
+                Divider().padding(.leading, 16).background(Color.voltTextMuted.opacity(0.15))
+            }
+        }
+    }
+}
+
+private struct StepperRow: View {
+    let label: String
+    let value: String
+    let onDecrement: () -> Void
+    let onIncrement: () -> Void
+    var showDivider: Bool = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(label)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(Color.voltTextDark)
+                Spacer()
+                Text(value)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Color.voltTextMuted)
+                HStack(spacing: 12) {
+                    Button(action: onDecrement) {
+                        Image(systemName: "minus")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Color.voltTextDark)
+                            .frame(width: 28, height: 28)
+                            .background(Color.voltSoftGray)
+                            .clipShape(Circle())
+                    }
+                    Button(action: onIncrement) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Color.voltTextDark)
+                            .frame(width: 28, height: 28)
+                            .background(Color.voltSoftGray)
+                            .clipShape(Circle())
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.leading, 10)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            if showDivider {
+                Divider().padding(.leading, 16).background(Color.voltTextMuted.opacity(0.15))
+            }
+        }
+    }
+}
+
+private struct InfoRow: View {
+    let label: String
+    let value: String
+
+    var body: some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(Color.voltTextDark)
+            Spacer()
+            Text(value)
+                .font(.system(size: 15))
+                .foregroundStyle(Color.voltTextMuted)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+    }
+}
+
+private struct ToggleRow: View {
+    let label: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        Toggle(isOn: $isOn) {
+            Text(label)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(Color.voltTextDark)
+        }
+        .tint(Color.voltLime)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+}
+
+private struct NoteText: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 12))
+            .foregroundStyle(Color.voltTextMuted)
+            .padding(.horizontal, 4)
+    }
+}
+
 // MARK: - Detail views
 
 struct PersonalInfoView: View {
     @Bindable var profile: UserProfile
 
     var body: some View {
-        Form {
-            Section("Basics") {
-                TextField("Name", text: $profile.name)
-                Stepper("Age: \(profile.age)", value: $profile.age, in: 14...90)
-            }
-            Section("Body") {
-                Stepper("Height: \(Int(profile.heightCm)) cm", value: $profile.heightCm, in: 120...220, step: 1)
-                Stepper("Weight: \(String(format: "%.1f", profile.weightKg)) kg", value: $profile.weightKg, in: 35...200, step: 0.5)
-                Picker("Gender", selection: $profile.gender) {
-                    ForEach(Gender.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 20) {
+                DetailSection(title: "Basics") {
+                    HStack {
+                        Text("Name")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(Color.voltTextDark)
+                        Spacer()
+                        TextField("Name", text: $profile.name)
+                            .multilineTextAlignment(.trailing)
+                            .foregroundStyle(Color.voltTextDark)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    Divider().padding(.leading, 16).background(Color.voltTextMuted.opacity(0.15))
+                    StepperRow(
+                        label: "Age", value: "\(profile.age)",
+                        onDecrement: { if profile.age > 14 { profile.age -= 1 } },
+                        onIncrement: { if profile.age < 90 { profile.age += 1 } }
+                    )
+                }
+                DetailSection(title: "Body") {
+                    StepperRow(
+                        label: "Height", value: "\(Int(profile.heightCm)) cm",
+                        onDecrement: { if profile.heightCm > 120 { profile.heightCm -= 1 } },
+                        onIncrement: { if profile.heightCm < 220 { profile.heightCm += 1 } },
+                        showDivider: true
+                    )
+                    StepperRow(
+                        label: "Weight", value: String(format: "%.1f kg", profile.weightKg),
+                        onDecrement: { if profile.weightKg > 35 { profile.weightKg -= 0.5 } },
+                        onIncrement: { if profile.weightKg < 200 { profile.weightKg += 0.5 } },
+                        showDivider: true
+                    )
+                    HStack(spacing: 10) {
+                        ForEach(Gender.allCases, id: \.self) { gender in
+                            Button {
+                                profile.gender = gender
+                            } label: {
+                                Text(gender.rawValue)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 40)
+                                    .background(profile.gender == gender ? Color.voltLime : Color.voltSoftGray)
+                                    .foregroundStyle(profile.gender == gender ? Color.voltOnLime : Color.voltTextDark)
+                                    .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                 }
             }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
         }
-        .navigationTitle("Personal Information")
-        .navigationBarTitleDisplayMode(.inline)
-        .scrollContentBackground(.hidden)
         .background(Color.voltOffWhite)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top) { DetailHeader(title: "Personal Information").background(Color.voltOffWhite) }
     }
 }
 
@@ -146,30 +366,37 @@ struct GoalsPlanView: View {
     @Bindable var profile: UserProfile
 
     var body: some View {
-        Form {
-            Section("Goal") {
-                Picker("Main goal", selection: $profile.goal) {
-                    ForEach(FitnessGoal.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 20) {
+                DetailSection(title: "Goal") {
+                    ForEach(Array(FitnessGoal.allCases.enumerated()), id: \.element) { index, goal in
+                        SelectableRow(title: goal.rawValue, isSelected: profile.goal == goal, showDivider: index != FitnessGoal.allCases.count - 1) {
+                            profile.goal = goal
+                        }
+                    }
                 }
-                Picker("Dream body", selection: $profile.dreamBody) {
-                    ForEach(BodyType.dreamOptions, id: \.self) { Text($0.rawValue).tag($0) }
+                DetailSection(title: "Dream Body") {
+                    ForEach(Array(BodyType.dreamOptions.enumerated()), id: \.element) { index, body in
+                        SelectableRow(title: body.rawValue, isSelected: profile.dreamBody == body, showDivider: index != BodyType.dreamOptions.count - 1) {
+                            profile.dreamBody = body
+                        }
+                    }
                 }
-            }
-            Section("Level") {
-                Picker("Fitness level", selection: $profile.fitnessLevel) {
-                    ForEach(FitnessLevel.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                DetailSection(title: "Level") {
+                    ForEach(Array(FitnessLevel.allCases.enumerated()), id: \.element) { index, level in
+                        SelectableRow(title: level.rawValue, isSelected: profile.fitnessLevel == level, showDivider: index != FitnessLevel.allCases.count - 1) {
+                            profile.fitnessLevel = level
+                        }
+                    }
                 }
+                NoteText(text: "Changing these regenerates your weekly plan and recovery windows automatically.")
             }
-            Section {
-                Text("Changing these regenerates your weekly plan and recovery windows automatically.")
-                    .font(.footnote)
-                    .foregroundStyle(Color.voltTextMuted)
-            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
         }
-        .navigationTitle("Goals & Plan")
-        .navigationBarTitleDisplayMode(.inline)
-        .scrollContentBackground(.hidden)
         .background(Color.voltOffWhite)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top) { DetailHeader(title: "Goals & Plan").background(Color.voltOffWhite) }
     }
 }
 
@@ -177,16 +404,24 @@ struct TrainingScheduleView: View {
     @Bindable var profile: UserProfile
 
     var body: some View {
-        Form {
-            Section("Weekly frequency") {
-                Stepper("\(profile.trainingDaysPerWeek) days a week", value: $profile.trainingDaysPerWeek, in: 3...6)
-                LabeledContent("Split", value: AIProgramEngine.splitSummary(for: profile.trainingDaysPerWeek))
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 20) {
+                DetailSection(title: "Weekly Frequency") {
+                    StepperRow(
+                        label: "Days a week", value: "\(profile.trainingDaysPerWeek)",
+                        onDecrement: { if profile.trainingDaysPerWeek > 3 { profile.trainingDaysPerWeek -= 1 } },
+                        onIncrement: { if profile.trainingDaysPerWeek < 6 { profile.trainingDaysPerWeek += 1 } },
+                        showDivider: true
+                    )
+                    InfoRow(label: "Split", value: AIProgramEngine.splitSummary(for: profile.trainingDaysPerWeek))
+                }
             }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
         }
-        .navigationTitle("Training Schedule")
-        .navigationBarTitleDisplayMode(.inline)
-        .scrollContentBackground(.hidden)
         .background(Color.voltOffWhite)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top) { DetailHeader(title: "Training Schedule").background(Color.voltOffWhite) }
     }
 }
 
@@ -194,22 +429,23 @@ struct RecoverySettingsView: View {
     @Bindable var profile: UserProfile
 
     var body: some View {
-        Form {
-            Section("Current state") {
-                Picker("Typical soreness", selection: $profile.soreness) {
-                    ForEach(SorenessLevel.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 20) {
+                DetailSection(title: "Current State") {
+                    ForEach(Array(SorenessLevel.allCases.enumerated()), id: \.element) { index, level in
+                        SelectableRow(title: level.rawValue, isSelected: profile.soreness == level, showDivider: index != SorenessLevel.allCases.count - 1) {
+                            profile.soreness = level
+                        }
+                    }
                 }
+                NoteText(text: "High soreness extends every muscle's recovery window by 20%. Update this whenever your body feels different.")
             }
-            Section {
-                Text("High soreness extends every muscle's recovery window by 20%. Update this whenever your body feels different.")
-                    .font(.footnote)
-                    .foregroundStyle(Color.voltTextMuted)
-            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
         }
-        .navigationTitle("Recovery Settings")
-        .navigationBarTitleDisplayMode(.inline)
-        .scrollContentBackground(.hidden)
         .background(Color.voltOffWhite)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top) { DetailHeader(title: "Recovery Settings").background(Color.voltOffWhite) }
     }
 }
 
@@ -217,27 +453,30 @@ struct SleepHydrationView: View {
     @Bindable var profile: UserProfile
 
     var body: some View {
-        Form {
-            Section("Sleep") {
-                Picker("Average sleep", selection: $profile.sleepAverage) {
-                    ForEach(SleepAverage.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 20) {
+                DetailSection(title: "Sleep") {
+                    ForEach(Array(SleepAverage.allCases.enumerated()), id: \.element) { index, sleep in
+                        SelectableRow(title: sleep.rawValue, isSelected: profile.sleepAverage == sleep, showDivider: index != SleepAverage.allCases.count - 1) {
+                            profile.sleepAverage = sleep
+                        }
+                    }
                 }
-            }
-            Section("Hydration") {
-                Picker("Daily hydration", selection: $profile.hydration) {
-                    ForEach(HydrationLevel.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                DetailSection(title: "Hydration") {
+                    ForEach(Array(HydrationLevel.allCases.enumerated()), id: \.element) { index, hydration in
+                        SelectableRow(title: hydration.rawValue, isSelected: profile.hydration == hydration, showDivider: index != HydrationLevel.allCases.count - 1) {
+                            profile.hydration = hydration
+                        }
+                    }
                 }
+                NoteText(text: "Sleeping under 7 hours slows recovery by 15%. Good hydration speeds it up by 3%.")
             }
-            Section {
-                Text("Sleeping under 7 hours slows recovery by 15%. Good hydration speeds it up by 3%.")
-                    .font(.footnote)
-                    .foregroundStyle(Color.voltTextMuted)
-            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
         }
-        .navigationTitle("Sleep & Hydration")
-        .navigationBarTitleDisplayMode(.inline)
-        .scrollContentBackground(.hidden)
         .background(Color.voltOffWhite)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top) { DetailHeader(title: "Sleep & Hydration").background(Color.voltOffWhite) }
     }
 }
 
@@ -246,40 +485,48 @@ struct AppPreferencesView: View {
     @AppStorage("useMetric") private var useMetric = true
 
     var body: some View {
-        Form {
-            Section("Notifications") {
-                Toggle("Muscle-ready reminders", isOn: $notificationsEnabled)
-                    .onChange(of: notificationsEnabled) { _, enabled in
-                        if enabled { NotificationService.requestAuthorization() }
-                        else { NotificationService.cancelAll() }
-                    }
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 20) {
+                DetailSection(title: "Notifications") {
+                    ToggleRow(label: "Muscle-ready reminders", isOn: $notificationsEnabled)
+                        .onChange(of: notificationsEnabled) { _, enabled in
+                            if enabled { NotificationService.requestAuthorization() }
+                            else { NotificationService.cancelAll() }
+                        }
+                }
+                DetailSection(title: "Units") {
+                    ToggleRow(label: "Use metric (kg / cm)", isOn: $useMetric)
+                }
             }
-            Section("Units") {
-                Toggle("Use metric (kg / cm)", isOn: $useMetric)
-            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
         }
-        .navigationTitle("App Preferences")
-        .navigationBarTitleDisplayMode(.inline)
-        .scrollContentBackground(.hidden)
         .background(Color.voltOffWhite)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top) { DetailHeader(title: "App Preferences").background(Color.voltOffWhite) }
     }
 }
 
 struct HelpSupportView: View {
     var body: some View {
-        Form {
-            Section("How recovery works") {
-                Text("Every muscle has a base recovery window (36–72 hours). VOLTFORM adjusts it with your fitness level, sleep, soreness, hydration, training volume, and the gap between your current and dream body — so your forecast is yours alone.")
-                    .font(.footnote)
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 20) {
+                DetailSection(title: "How Recovery Works") {
+                    Text("Every muscle has a base recovery window (36–72 hours). VOLTFORM adjusts it with your fitness level, sleep, soreness, hydration, training volume, and the gap between your current and dream body so your forecast is yours alone.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.voltTextDark)
+                        .padding(16)
+                }
+                DetailSection(title: "Contact") {
+                    InfoRow(label: "Email", value: "support@voltform.app")
+                }
             }
-            Section("Contact") {
-                LabeledContent("Email", value: "support@voltform.app")
-            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
         }
-        .navigationTitle("Help & Support")
-        .navigationBarTitleDisplayMode(.inline)
-        .scrollContentBackground(.hidden)
         .background(Color.voltOffWhite)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top) { DetailHeader(title: "Help & Support").background(Color.voltOffWhite) }
     }
 }
 
@@ -306,8 +553,8 @@ struct AboutView: View {
         }
         .frame(maxWidth: .infinity)
         .background(Color.voltOffWhite)
-        .navigationTitle("About")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top) { DetailHeader(title: "About").background(Color.voltOffWhite) }
     }
 }
 
@@ -317,12 +564,6 @@ struct AboutView: View {
 /// one place, like flipping through a simulator's view hierarchy. Not part
 /// of the real user flow; wire it up from a hidden or admin-only entry point.
 enum GalleryDestination: String, Identifiable, CaseIterable {
-    case splash = "Splash"
-    case home = "Home"
-    case workout = "Workout"
-    case recovery = "Recovery"
-    case body = "Body"
-    case profile = "Profile"
     case workoutSession = "Workout Session"
     case workoutCompleted = "Workout Completed"
     case workoutSummary = "Workout Summary"
@@ -334,12 +575,6 @@ enum GalleryDestination: String, Identifiable, CaseIterable {
 
     var icon: String {
         switch self {
-        case .splash: return "bolt.fill"
-        case .home: return "house"
-        case .workout: return "dumbbell"
-        case .recovery: return "bolt.heart"
-        case .body: return "person.fill.viewfinder"
-        case .profile: return "person"
         case .workoutSession: return "figure.strengthtraining.traditional"
         case .workoutCompleted: return "checkmark.seal"
         case .workoutSummary: return "chart.bar"
@@ -351,8 +586,6 @@ enum GalleryDestination: String, Identifiable, CaseIterable {
 
     var section: String {
         switch self {
-        case .splash: return "Onboarding"
-        case .home, .workout, .recovery, .body, .profile: return "Main Tabs"
         case .workoutSession, .workoutCompleted, .workoutSummary: return "Workout Flow"
         case .bodyScan, .scanResult: return "Body Scan Flow"
         case .addWorkout: return "Sheets"
@@ -457,18 +690,6 @@ struct DevGalleryView: View {
     @ViewBuilder
     private func galleryDestinationView(_ item: GalleryDestination) -> some View {
         switch item {
-        case .splash:
-            SplashView()
-        case .home:
-            HomeView(switchTab: { _ in })
-        case .workout:
-            WorkoutView()
-        case .recovery:
-            RecoveryView()
-        case .body:
-            BodyView()
-        case .profile:
-            ProfileView()
         case .workoutSession:
             WorkoutSessionView(session: sampleSession)
         case .workoutCompleted:

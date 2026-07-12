@@ -209,7 +209,7 @@ struct BodyView: View {
                             .frame(width: 26, alignment: .trailing)
                     }
                 }
-                Text("Estimated from your latest scan — the AI program adds sets where bars are low.")
+                Text("Estimated from your latest scan the AI program adds sets where bars are low.")
                     .font(.system(size: 11))
                     .foregroundStyle(.white.opacity(0.4))
             }
