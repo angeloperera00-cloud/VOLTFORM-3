@@ -10,6 +10,11 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 18) {
+                    Text("Profile")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundStyle(Color.voltTextDark)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
                     if let profile {
                         headerCard(profile)
 
@@ -53,9 +58,7 @@ struct ProfileView: View {
                 .padding(.bottom, 24)
             }
             .background(Color.voltOffWhite)
-            .navigationTitle("Profile")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(Color.voltOffWhite, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
@@ -266,7 +269,7 @@ struct HelpSupportView: View {
     var body: some View {
         Form {
             Section("How recovery works") {
-                Text("Every muscle has a base recovery window (36–72 hours). VOLTFORM adjusts it with your fitness level, sleep, soreness, hydration, training volume, and the gap between your current and dream body so your forecast is yours alone.")
+                Text("Every muscle has a base recovery window (36–72 hours). VOLTFORM adjusts it with your fitness level, sleep, soreness, hydration, training volume, and the gap between your current and dream body — so your forecast is yours alone.")
                     .font(.footnote)
             }
             Section("Contact") {
@@ -310,10 +313,11 @@ struct AboutView: View {
 
 // MARK: - Developer Screen Gallery
 
+/// Developer-only screen catalog — every screen in the app, reachable from
+/// one place, like flipping through a simulator's view hierarchy. Not part
+/// of the real user flow; wire it up from a hidden or admin-only entry point.
 enum GalleryDestination: String, Identifiable, CaseIterable {
     case splash = "Splash"
-    case onboarding = "Onboarding"
-    case mainTab = "Main App (Tab Bar)"
     case home = "Home"
     case workout = "Workout"
     case recovery = "Recovery"
@@ -331,8 +335,6 @@ enum GalleryDestination: String, Identifiable, CaseIterable {
     var icon: String {
         switch self {
         case .splash: return "bolt.fill"
-        case .onboarding: return "list.bullet.rectangle"
-        case .mainTab: return "square.grid.2x2"
         case .home: return "house"
         case .workout: return "dumbbell"
         case .recovery: return "bolt.heart"
@@ -349,8 +351,8 @@ enum GalleryDestination: String, Identifiable, CaseIterable {
 
     var section: String {
         switch self {
-        case .splash, .onboarding: return "Onboarding"
-        case .mainTab, .home, .workout, .recovery, .body, .profile: return "Main Tabs"
+        case .splash: return "Onboarding"
+        case .home, .workout, .recovery, .body, .profile: return "Main Tabs"
         case .workoutSession, .workoutCompleted, .workoutSummary: return "Workout Flow"
         case .bodyScan, .scanResult: return "Body Scan Flow"
         case .addWorkout: return "Sheets"
@@ -359,6 +361,7 @@ enum GalleryDestination: String, Identifiable, CaseIterable {
 }
 
 struct DevGalleryView: View {
+    @Environment(\.dismiss) private var dismiss
     @Query(sort: \WorkoutSession.startDate, order: .reverse) private var sessions: [WorkoutSession]
     @Query(sort: \BodyScanResult.date, order: .reverse) private var scans: [BodyScanResult]
     @Query private var profiles: [UserProfile]
@@ -374,35 +377,78 @@ struct DevGalleryView: View {
     }
 
     var body: some View {
-        List {
-            ForEach(Array(Dictionary(grouping: GalleryDestination.allCases, by: \.section).sorted(by: { $0.key < $1.key })), id: \.key) { section, items in
-                Section(section) {
-                    ForEach(items) { item in
-                        Button {
-                            destination = item
-                        } label: {
-                            HStack(spacing: 14) {
-                                Image(systemName: item.icon)
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundStyle(Color.voltTextDark)
-                                    .frame(width: 32, height: 32)
-                                    .background(Color.voltSoftGray)
-                                    .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-                                Text(item.rawValue)
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundStyle(Color.voltTextDark)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundStyle(Color.voltTextMuted.opacity(0.6))
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 20) {
+                ForEach(Array(Dictionary(grouping: GalleryDestination.allCases, by: \.section).sorted(by: { $0.key < $1.key })), id: \.key) { section, items in
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(section.uppercased())
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Color.voltTextMuted)
+                            .padding(.leading, 4)
+
+                        VStack(spacing: 0) {
+                            ForEach(items) { item in
+                                Button {
+                                    destination = item
+                                } label: {
+                                    HStack(spacing: 14) {
+                                        Image(systemName: item.icon)
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundStyle(Color.voltLime)
+                                            .frame(width: 32, height: 32)
+                                            .background(Color.voltBlack)
+                                            .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                                        Text(item.rawValue)
+                                            .font(.system(size: 15, weight: .medium))
+                                            .foregroundStyle(Color.voltTextDark)
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 12, weight: .semibold))
+                                            .foregroundStyle(Color.voltTextMuted.opacity(0.6))
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                }
+                                .buttonStyle(.plain)
+                                if item.id != items.last?.id {
+                                    Divider().padding(.leading, 62).background(Color.voltTextMuted.opacity(0.15))
+                                }
                             }
                         }
+                        .background(Color.voltCard)
+                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                     }
                 }
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 24)
         }
-        .navigationTitle("Screen Gallery")
-        .navigationBarTitleDisplayMode(.inline)
+        .background(Color.voltOffWhite)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top) {
+            HStack {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color.voltTextDark)
+                        .frame(width: 36, height: 36)
+                        .background(Color.voltCard)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                Spacer()
+                Text("Screen Gallery")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(Color.voltTextDark)
+                Spacer()
+                Color.clear.frame(width: 36, height: 36)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
+            .background(Color.voltOffWhite)
+        }
         .fullScreenCover(item: $destination) { item in
             galleryDestinationView(item)
         }
@@ -413,10 +459,6 @@ struct DevGalleryView: View {
         switch item {
         case .splash:
             SplashView()
-        case .onboarding:
-            OnboardingView()
-        case .mainTab:
-            MainTabView()
         case .home:
             HomeView(switchTab: { _ in })
         case .workout:
