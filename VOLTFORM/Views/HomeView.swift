@@ -11,7 +11,6 @@ struct HomeView: View {
     let switchTab: (VoltTab) -> Void
 
     @State private var activeSession: WorkoutSession?
-    @State private var selectedExerciseIndex: Int = 0
     @State private var showSleepAdjust = false
     @State private var showHydrationAdjust = false
     @State private var showSorenessAdjust = false
@@ -132,8 +131,6 @@ struct HomeView: View {
                     .frame(width: 74, height: 100)
             }
 
-            exercisePager(exercises: workout.exercises)
-
             PrimaryButton(title: "Start Workout", icon: "play.fill", style: .lime) {
                 activeSession = StorageService.startSession(from: workout, context: context)
             }
@@ -142,68 +139,6 @@ struct HomeView: View {
         .background(Color.voltCard)
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 14, x: 0, y: 6)
-    }
-
-    private func exercisePager(exercises: [PlannedExercise]) -> some View {
-        VStack(spacing: 8) {
-            TabView(selection: $selectedExerciseIndex) {
-                ForEach(Array(exercises.enumerated()), id: \.offset) { index, exercise in
-                    exerciseMiniCard(exercise: exercise)
-                        .tag(index)
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(height: 62)
-
-            exercisePageDots(count: exercises.count)
-        }
-        .onAppear {
-            if selectedExerciseIndex >= exercises.count {
-                selectedExerciseIndex = 0
-            }
-        }
-    }
-
-    private func exerciseMiniCard(exercise: PlannedExercise) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: exercise.muscle.icon)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(Color.voltTextDark)
-                .frame(width: 36, height: 36)
-                .background(Color.voltSoftGray)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(exercise.name)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color.voltTextDark)
-                Text("\(exercise.sets) sets × \(exercise.repRange)")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.voltTextMuted)
-            }
-            Spacer()
-        }
-        .padding(10)
-        .background(Color.voltSoftGray.opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-
-    private func exercisePageDots(count: Int) -> some View {
-        HStack(spacing: 6) {
-            ForEach(0..<count, id: \.self) { index in
-                let isActive: Bool = index == selectedExerciseIndex
-                exercisePageDot(isActive: isActive)
-            }
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func exercisePageDot(isActive: Bool) -> some View {
-        let dotWidth: CGFloat = isActive ? 16 : 6
-        let dotColor: Color = isActive ? Color.voltLimeDeep : Color.voltTextMuted.opacity(0.25)
-        return Capsule()
-            .fill(dotColor)
-            .frame(width: dotWidth, height: 6)
-            .animation(.easeInOut(duration: 0.2), value: isActive)
     }
 
     private func cardioCard(type: CardioType, minutes: Int, label: String) -> some View {
