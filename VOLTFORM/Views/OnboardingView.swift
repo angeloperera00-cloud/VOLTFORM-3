@@ -105,7 +105,7 @@ private struct WelcomeStep: View {
 
             Spacer()
 
-            PrimaryButton(title: "Get Started", icon: "arrow.right") { manager.next() }
+            PrimaryButton(title: "Get Started", icon: "arrow.right", style: .lime) { manager.next() }
         }
         .padding(24)
     }
@@ -131,7 +131,7 @@ private struct GoalStep: View {
                 .padding(.top, 24)
             }
 
-            PrimaryButton(title: "Continue", isDisabled: manager.goal == nil) { manager.next() }
+            PrimaryButton(title: "Continue", style: .lime, isDisabled: manager.goal == nil) { manager.next() }
         }
         .padding(24)
     }
@@ -156,7 +156,7 @@ private struct LevelStep: View {
             .padding(.top, 24)
 
             Spacer()
-            PrimaryButton(title: "Continue", isDisabled: manager.level == nil) { manager.next() }
+            PrimaryButton(title: "Continue", style: .lime, isDisabled: manager.level == nil) { manager.next() }
         }
         .padding(24)
     }
@@ -186,7 +186,7 @@ private struct TrainingDaysStep: View {
             .padding(.top, 24)
 
             Spacer()
-            PrimaryButton(title: "Continue", isDisabled: manager.trainingDays == nil) { manager.next() }
+            PrimaryButton(title: "Continue", style: .lime, isDisabled: manager.trainingDays == nil) { manager.next() }
         }
         .padding(24)
     }
@@ -227,7 +227,7 @@ private struct AboutYouStep: View {
             .padding(.top, 24)
 
             Spacer()
-            PrimaryButton(title: "Continue") { manager.next() }
+            PrimaryButton(title: "Continue", style: .lime) { manager.next() }
         }
         .padding(24)
     }
@@ -275,7 +275,7 @@ private struct DreamBodyStep: View {
             .padding(.top, 24)
 
             Spacer()
-            PrimaryButton(title: "Continue", isDisabled: manager.dreamBody == nil) { manager.next() }
+            PrimaryButton(title: "Continue", style: .lime, isDisabled: manager.dreamBody == nil) { manager.next() }
         }
         .padding(24)
     }
@@ -311,7 +311,7 @@ private struct RecoverySetupStep: View {
                 .padding(.top, 24)
             }
 
-            PrimaryButton(title: "Continue") { manager.next() }
+            PrimaryButton(title: "Continue", style: .lime) { manager.next() }
         }
         .padding(24)
     }
@@ -390,7 +390,7 @@ private struct OnboardingScanStep: View {
 
             Spacer()
 
-            PrimaryButton(title: "Start Body Scan", icon: "camera.fill") {
+            PrimaryButton(title: "Start Body Scan", icon: "camera.fill", style: .lime) {
                 manager.didScan = true
                 manager.next()
             }
@@ -527,7 +527,7 @@ private struct AllSetStep: View {
 
             Spacer()
 
-            PrimaryButton(title: "Enter VOLTFORM", icon: "bolt.fill") {
+            PrimaryButton(title: "Enter VOLTFORM", icon: "bolt.fill", style: .lime) {
                 if let profile = profiles.first {
                     profile.onboardingComplete = true
                     try? context.save()
