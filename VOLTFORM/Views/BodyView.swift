@@ -4,12 +4,19 @@ import SwiftData
 struct BodyView: View {
     @Query private var profiles: [UserProfile]
     @Query(sort: \BodyScanResult.date, order: .reverse) private var scans: [BodyScanResult]
+    @Query(sort: \WorkoutSession.startDate, order: .reverse) private var sessions: [WorkoutSession]
 
     @State private var tab = 0
     @State private var showScan = false
 
     private var profile: UserProfile? { profiles.first }
     private var latestScan: BodyScanResult? { scans.first }
+
+    private var recoveryByMuscle: [MuscleGroup: Double] {
+        guard let profile else { return [:] }
+        let recoveries = RecoveryEngine.allRecoveries(profile: profile, sessions: sessions, scan: latestScan)
+        return Dictionary(uniqueKeysWithValues: recoveries.map { ($0.muscle, $0.percentage) })
+    }
 
     var body: some View {
         ZStack {
@@ -56,23 +63,26 @@ struct BodyView: View {
 
     private var overviewTab: some View {
         VStack(spacing: 16) {
-            HStack(alignment: .top, spacing: 14) {
+            VStack(spacing: 10) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
                         .fill(Color.voltDarkCard)
-                    BodyFigurePlaceholder(dark: true)
-                        .padding(24)
+                    MuscleRecoveryFigure(recoveries: recoveryByMuscle)
+                        .padding(36)
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: 320)
+                .frame(height: 420)
 
-                VStack(spacing: 10) {
-                    bodyStatRow(title: "Body Type", value: latestScan?.bodyType.rawValue ?? profile?.currentBodyType.rawValue ?? "Athletic")
-                    bodyStatRow(title: "Body Fat", value: latestScan.map { String(format: "%.0f%%", $0.bodyFatPercent) } ?? "16%")
-                    bodyStatRow(title: "Muscle Mass", value: latestScan.map { String(format: "%.1f kg", $0.muscleMassKg) } ?? "38.6 kg")
-                    bodyStatRow(title: "Metabolic Age", value: "\(latestScan?.metabolicAge ?? 22)")
-                }
-                .frame(width: 128)
+                MuscleRecoveryLegend()
+            }
+
+            HStack(spacing: 12) {
+                bodyStatRow(title: "Body Type", value: latestScan?.bodyType.rawValue ?? profile?.currentBodyType.rawValue ?? "Athletic")
+                bodyStatRow(title: "Body Fat", value: latestScan.map { String(format: "%.0f%%", $0.bodyFatPercent) } ?? "16%")
+            }
+            HStack(spacing: 12) {
+                bodyStatRow(title: "Muscle Mass", value: latestScan.map { String(format: "%.1f kg", $0.muscleMassKg) } ?? "38.6 kg")
+                bodyStatRow(title: "Metabolic Age", value: "\(latestScan?.metabolicAge ?? 22)")
             }
 
             dreamProgressCard

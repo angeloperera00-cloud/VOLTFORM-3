@@ -380,3 +380,91 @@ struct BottomTabBar: View {
         .buttonStyle(.plain)
     }
 }
+
+// MARK: - MuscleRecoveryFigure
+
+/// A simplified front-view body diagram built from basic shapes (no external
+/// art asset available), where each region is colored by that muscle
+/// group's actual current recovery percentage — so it visually answers
+/// "where am I recovered, where am I still recovering, where do I need to
+/// rest" at a glance, using the same color thresholds as the Recovery tab.
+struct MuscleRecoveryFigure: View {
+    let recoveries: [MuscleGroup: Double]
+    var unknownColor: Color = .white.opacity(0.15)
+
+    private func color(for muscle: MuscleGroup) -> Color {
+        guard let percentage = recoveries[muscle] else { return unknownColor }
+        if percentage < 45 { return .voltDanger }
+        if percentage < 75 { return .voltWarning }
+        return .voltLimeDeep
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+
+            ZStack {
+                // Legs
+                HStack(spacing: w * 0.06) {
+                    Capsule().fill(color(for: .legs)).frame(width: w * 0.16, height: h * 0.36)
+                    Capsule().fill(color(for: .legs)).frame(width: w * 0.16, height: h * 0.36)
+                }
+                .position(x: w * 0.5, y: h * 0.80)
+
+                // Arms
+                HStack(spacing: w * 0.50) {
+                    Capsule().fill(color(for: .arms)).frame(width: w * 0.13, height: h * 0.34)
+                    Capsule().fill(color(for: .arms)).frame(width: w * 0.13, height: h * 0.34)
+                }
+                .position(x: w * 0.5, y: h * 0.44)
+
+                // Chest / back (combined torso block — a flat front-view
+                // diagram can't separate front vs. back, so this represents both)
+                RoundedRectangle(cornerRadius: w * 0.10, style: .continuous)
+                    .fill(color(for: .chest))
+                    .frame(width: w * 0.40, height: h * 0.24)
+                    .position(x: w * 0.5, y: h * 0.32)
+
+                // Core
+                RoundedRectangle(cornerRadius: w * 0.08, style: .continuous)
+                    .fill(color(for: .core))
+                    .frame(width: w * 0.28, height: h * 0.16)
+                    .position(x: w * 0.5, y: h * 0.50)
+
+                // Shoulders
+                HStack(spacing: w * 0.42) {
+                    Circle().fill(color(for: .shoulders)).frame(width: w * 0.14, height: w * 0.14)
+                    Circle().fill(color(for: .shoulders)).frame(width: w * 0.14, height: w * 0.14)
+                }
+                .position(x: w * 0.5, y: h * 0.22)
+
+                // Head (decorative, not tied to a muscle group)
+                Circle()
+                    .fill(Color.white.opacity(0.85))
+                    .frame(width: w * 0.20, height: w * 0.20)
+                    .position(x: w * 0.5, y: h * 0.08)
+            }
+        }
+    }
+}
+
+/// Small legend explaining the color coding used by MuscleRecoveryFigure.
+struct MuscleRecoveryLegend: View {
+    var body: some View {
+        HStack(spacing: 16) {
+            legendItem(color: .voltLimeDeep, label: "Ready")
+            legendItem(color: .voltWarning, label: "Recovering")
+            legendItem(color: .voltDanger, label: "Needs rest")
+        }
+    }
+
+    private func legendItem(color: Color, label: String) -> some View {
+        HStack(spacing: 6) {
+            Circle().fill(color).frame(width: 8, height: 8)
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.white.opacity(0.6))
+        }
+    }
+}
