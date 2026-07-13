@@ -26,7 +26,7 @@ extension Color {
     /// Warm gold used for "moderate/developing" states — sits between lime
     /// and red in hue rather than a flat system-amber, so it reads as part
     /// of the app's own palette instead of a generic warning color.
-    static let voltGold = Color(hex: 0xD9B34F)
+    static let voltGold = Color(hex: 0xC08A52)
     /// Dedicated dark ink for content placed directly on a lime-colored fill
     /// (buttons, tag pills, selected chips) — kept dark even though
     /// voltTextDark itself is now light, so lime surfaces stay readable.

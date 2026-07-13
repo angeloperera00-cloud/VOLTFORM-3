@@ -22,7 +22,7 @@ struct BodyView: View {
         ZStack {
             Color.voltBlack.ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 20) {
                 HStack {
                     Text("Your Twin")
                         .font(.system(size: 26, weight: .bold))
@@ -52,7 +52,9 @@ struct BodyView: View {
                     .padding(.bottom, 20)
                 }
             }
-            .padding(20)
+            .padding(.horizontal, 20)
+            .padding(.top, 32)
+            .padding(.bottom, 20)
         }
         .fullScreenCover(isPresented: $showScan) {
             BodyScanView()
@@ -62,27 +64,29 @@ struct BodyView: View {
     // MARK: Overview
 
     private var overviewTab: some View {
-        VStack(spacing: 16) {
-            VStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(Color.voltDarkCard)
-                    MuscleRecoveryFigure(recoveries: recoveryByMuscle)
-                        .padding(36)
+        VStack(spacing: 26) {
+            HStack(alignment: .top, spacing: 8) {
+                VStack(spacing: 8) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color.voltDarkCard)
+                        MuscleRecoveryFigure(recoveries: recoveryByMuscle)
+                            .padding(20)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 360)
+
+                    MuscleRecoveryLegend()
                 }
-                .frame(maxWidth: .infinity)
-                .frame(height: 420)
 
-                MuscleRecoveryLegend()
-            }
-
-            HStack(spacing: 12) {
-                bodyStatRow(title: "Body Type", value: latestScan?.bodyType.rawValue ?? profile?.currentBodyType.rawValue ?? "Athletic")
-                bodyStatRow(title: "Body Fat", value: latestScan.map { String(format: "%.0f%%", $0.bodyFatPercent) } ?? "16%")
-            }
-            HStack(spacing: 12) {
-                bodyStatRow(title: "Muscle Mass", value: latestScan.map { String(format: "%.1f kg", $0.muscleMassKg) } ?? "38.6 kg")
-                bodyStatRow(title: "Metabolic Age", value: "\(latestScan?.metabolicAge ?? 22)")
+                VStack(spacing: 10) {
+                    bodyStatRow(title: "Body Type", value: latestScan?.bodyType.rawValue ?? profile?.currentBodyType.rawValue ?? "Athletic")
+                    bodyStatRow(title: "Body Fat", value: latestScan.map { String(format: "%.0f%%", $0.bodyFatPercent) } ?? "16%")
+                    bodyStatRow(title: "Muscle Mass", value: latestScan.map { String(format: "%.1f kg", $0.muscleMassKg) } ?? "38.6 kg")
+                    bodyStatRow(title: "Metabolic Age", value: "\(latestScan?.metabolicAge ?? 22)")
+                    bodyStatRow(title: "Symmetry", value: "\(latestScan?.symmetryScore ?? 88)/100")
+                }
+                .frame(width: 128)
             }
 
             dreamProgressCard
@@ -99,7 +103,7 @@ struct BodyView: View {
                 .foregroundStyle(.white)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
+        .padding(10)
         .background(Color.voltDarkCard)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
@@ -164,7 +168,7 @@ struct BodyView: View {
                 }
                 distributionCard(scan: scan)
                 balanceRow(title: "Strongest", muscles: scan.strongest, color: .voltLime)
-                balanceRow(title: "Needs focus", muscles: scan.weakest, color: .voltWarning)
+                balanceRow(title: "Needs focus", muscles: scan.weakest, color: .voltGold)
                 DarkWorkoutCard {
                     HStack(spacing: 10) {
                         Image(systemName: "lightbulb.fill")
@@ -197,7 +201,7 @@ struct BodyView: View {
                             ZStack(alignment: .leading) {
                                 Capsule().fill(Color.white.opacity(0.08))
                                 Capsule()
-                                    .fill(score >= 65 ? Color.voltLime : (score >= 50 ? Color.voltWarning : Color.voltDanger))
+                                    .fill(score >= 65 ? Color.voltLime : (score >= 50 ? Color.voltGold : Color.voltDanger))
                                     .frame(width: geo.size.width * CGFloat(score) / 100)
                             }
                         }
@@ -208,7 +212,7 @@ struct BodyView: View {
                             .frame(width: 26, alignment: .trailing)
                     }
                 }
-                Text("Estimated from your latest scan — the AI program adds sets where bars are low.")
+                Text("Estimated from your latest scan the AI program adds sets where bars are low.")
                     .font(.system(size: 11))
                     .foregroundStyle(.white.opacity(0.4))
             }
