@@ -196,10 +196,46 @@ private struct TrainingDaysStep: View {
 
 private struct AboutYouStep: View {
     @Bindable var manager: OnboardingStateManager
+    @State private var isImporting = false
+    @State private var importMessage: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             StepHeader(manager: manager, title: "About you", subtitle: "Used to estimate your body composition and recovery.")
+
+            Button {
+                importFromHealth()
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text(isImporting ? "Importing..." : "Import from Apple Health")
+                        .font(.system(size: 14, weight: .semibold))
+                    Spacer()
+                    if isImporting {
+                        ProgressView()
+                            .tint(Color.voltTextDark)
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                }
+                .foregroundStyle(Color.voltTextDark)
+                .padding(14)
+                .background(Color.voltCard)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 3)
+            }
+            .buttonStyle(.plain)
+            .disabled(isImporting)
+            .padding(.top, 20)
+
+            if let importMessage {
+                Text(importMessage)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color.voltLimeDeep)
+                    .padding(.top, 8)
+            }
 
             VStack(spacing: 14) {
                 fieldRow(label: "Age", text: $manager.age, unit: "years")
@@ -224,12 +260,35 @@ private struct AboutYouStep: View {
                     }
                 }
             }
-            .padding(.top, 24)
+            .padding(.top, 20)
 
             Spacer()
             PrimaryButton(title: "Continue", style: .lime) { manager.next() }
         }
         .padding(24)
+    }
+
+    private func importFromHealth() {
+        guard HealthKitService.isAvailable else {
+            importMessage = "Health isn't available on this device."
+            return
+        }
+        isImporting = true
+        importMessage = nil
+        Task {
+            let imported = await HealthKitService.importProfile()
+            await MainActor.run {
+                isImporting = false
+                var fields: [String] = []
+                if let age = imported.age { manager.age = "\(age)"; fields.append("age") }
+                if let height = imported.heightCm { manager.height = "\(Int(height.rounded()))"; fields.append("height") }
+                if let weight = imported.weightKg { manager.weight = String(format: "%.1f", weight); fields.append("weight") }
+                if let gender = imported.gender { manager.gender = gender; fields.append("gender") }
+                importMessage = fields.isEmpty
+                    ? "No Health data found — you can still enter these manually."
+                    : "Imported \(fields.joined(separator: ", ")) from Health."
+            }
+        }
     }
 
     private func fieldRow(label: String, text: Binding<String>, unit: String) -> some View {
