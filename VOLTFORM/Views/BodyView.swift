@@ -70,11 +70,13 @@ struct BodyView: View {
                     ZStack {
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
                             .fill(Color.voltDarkCard)
-                        MuscleRecoveryFigure(recoveries: recoveryByMuscle)
-                            .padding(20)
+                        AnatomicalBodyFigureView()
+                            .padding(6)
+                            .scaleEffect(1.04)
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 360)
+                    .frame(height: 350)
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 
                     MuscleRecoveryLegend()
                 }

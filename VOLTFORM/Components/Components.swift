@@ -512,7 +512,7 @@ struct MuscleRecoveryFigure: View {
 /// Small legend explaining the color coding used by MuscleRecoveryFigure.
 struct MuscleRecoveryLegend: View {
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 14) {
             legendItem(color: .voltLimeDeep, label: "Ready")
             legendItem(color: .voltWarning, label: "Recovering")
             legendItem(color: .voltDanger, label: "Needs rest")
@@ -525,6 +525,8 @@ struct MuscleRecoveryLegend: View {
             Text(label)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.white.opacity(0.6))
+                .lineLimit(1)
+                .fixedSize()
         }
     }
 }
