@@ -53,7 +53,7 @@ struct BodyView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 12)
+            .padding(.top, 32)
             .padding(.bottom, 20)
         }
         .fullScreenCover(isPresented: $showScan) {
@@ -65,7 +65,7 @@ struct BodyView: View {
 
     private var overviewTab: some View {
         VStack(spacing: 26) {
-            HStack(alignment: .top, spacing: 8) {
+            HStack(alignment: .top, spacing: 14) {
                 VStack(spacing: 8) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -212,7 +212,7 @@ struct BodyView: View {
                             .frame(width: 26, alignment: .trailing)
                     }
                 }
-                Text("Estimated from your latest scan the AI program adds sets where bars are low.")
+                Text("Estimated from your latest scan — the AI program adds sets where bars are low.")
                     .font(.system(size: 11))
                     .foregroundStyle(.white.opacity(0.4))
             }

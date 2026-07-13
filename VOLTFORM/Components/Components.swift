@@ -388,6 +388,39 @@ struct BottomTabBar: View {
 /// group's actual current recovery percentage — so it visually answers
 /// "where am I recovered, where am I still recovering, where do I need to
 /// rest" at a glance, using the same color thresholds as the Recovery tab.
+/// A vertical shape that tapers between a top width and bottom width (as
+/// fractions of the available width), with rounded ends — gives limbs and
+/// the torso a more natural silhouette than a uniform capsule or rectangle.
+private struct TaperedCapsule: Shape {
+    var topWidth: CGFloat
+    var bottomWidth: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let topW = rect.width * topWidth
+        let bottomW = rect.width * bottomWidth
+        let topInset = (rect.width - topW) / 2
+        let bottomInset = (rect.width - bottomW) / 2
+        let radius = min(topW, bottomW, rect.height) / 2
+
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX + topInset + radius, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX - topInset - radius, y: rect.minY))
+        path.addArc(center: CGPoint(x: rect.maxX - topInset - radius, y: rect.minY + radius),
+                    radius: radius, startAngle: .degrees(-90), endAngle: .degrees(0), clockwise: false)
+        path.addLine(to: CGPoint(x: rect.maxX - bottomInset, y: rect.maxY - radius))
+        path.addArc(center: CGPoint(x: rect.maxX - bottomInset - radius, y: rect.maxY - radius),
+                    radius: radius, startAngle: .degrees(0), endAngle: .degrees(90), clockwise: false)
+        path.addLine(to: CGPoint(x: rect.minX + bottomInset + radius, y: rect.maxY))
+        path.addArc(center: CGPoint(x: rect.minX + bottomInset + radius, y: rect.maxY - radius),
+                    radius: radius, startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
+        path.addLine(to: CGPoint(x: rect.minX + topInset, y: rect.minY + radius))
+        path.addArc(center: CGPoint(x: rect.minX + topInset + radius, y: rect.minY + radius),
+                    radius: radius, startAngle: .degrees(180), endAngle: .degrees(270), clockwise: false)
+        path.closeSubpath()
+        return path
+    }
+}
+
 struct MuscleRecoveryFigure: View {
     let recoveries: [MuscleGroup: Double]
     var unknownColor: Color = .white.opacity(0.15)
@@ -399,51 +432,78 @@ struct MuscleRecoveryFigure: View {
         return .voltLimeDeep
     }
 
+    private var shadow: Color { .black.opacity(0.25) }
+
     var body: some View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
 
             ZStack {
-                // Legs
-                HStack(spacing: w * 0.06) {
-                    Capsule().fill(color(for: .legs)).frame(width: w * 0.16, height: h * 0.36)
-                    Capsule().fill(color(for: .legs)).frame(width: w * 0.16, height: h * 0.36)
+                // Legs — tapered thigh-to-ankle, angled slightly outward
+                HStack(spacing: w * 0.05) {
+                    TaperedCapsule(topWidth: 1.0, bottomWidth: 0.6)
+                        .fill(color(for: .legs))
+                        .frame(width: w * 0.17, height: h * 0.38)
+                        .rotationEffect(.degrees(-4), anchor: .top)
+                    TaperedCapsule(topWidth: 1.0, bottomWidth: 0.6)
+                        .fill(color(for: .legs))
+                        .frame(width: w * 0.17, height: h * 0.38)
+                        .rotationEffect(.degrees(4), anchor: .top)
                 }
-                .position(x: w * 0.5, y: h * 0.80)
+                .shadow(color: shadow, radius: 3, x: 0, y: 2)
+                .position(x: w * 0.5, y: h * 0.79)
 
-                // Arms
-                HStack(spacing: w * 0.50) {
-                    Capsule().fill(color(for: .arms)).frame(width: w * 0.13, height: h * 0.34)
-                    Capsule().fill(color(for: .arms)).frame(width: w * 0.13, height: h * 0.34)
+                // Arms — tapered bicep-to-wrist, angled outward from the shoulders
+                HStack(spacing: w * 0.48) {
+                    TaperedCapsule(topWidth: 0.9, bottomWidth: 0.55)
+                        .fill(color(for: .arms))
+                        .frame(width: w * 0.14, height: h * 0.36)
+                        .rotationEffect(.degrees(-7), anchor: .top)
+                    TaperedCapsule(topWidth: 0.9, bottomWidth: 0.55)
+                        .fill(color(for: .arms))
+                        .frame(width: w * 0.14, height: h * 0.36)
+                        .rotationEffect(.degrees(7), anchor: .top)
                 }
-                .position(x: w * 0.5, y: h * 0.44)
+                .shadow(color: shadow, radius: 3, x: 0, y: 2)
+                .position(x: w * 0.5, y: h * 0.42)
 
-                // Chest / back (combined torso block — a flat front-view
-                // diagram can't separate front vs. back, so this represents both)
-                RoundedRectangle(cornerRadius: w * 0.10, style: .continuous)
+                // Chest / back (combined torso — a flat front-view diagram
+                // can't separate front vs. back, so this represents both),
+                // tapered wider at the shoulders than the waist
+                TaperedCapsule(topWidth: 1.0, bottomWidth: 0.72)
                     .fill(color(for: .chest))
-                    .frame(width: w * 0.40, height: h * 0.24)
-                    .position(x: w * 0.5, y: h * 0.32)
+                    .frame(width: w * 0.42, height: h * 0.24)
+                    .shadow(color: shadow, radius: 3, x: 0, y: 2)
+                    .position(x: w * 0.5, y: h * 0.31)
 
-                // Core
-                RoundedRectangle(cornerRadius: w * 0.08, style: .continuous)
+                // Core, continuing the taper down toward the hips
+                TaperedCapsule(topWidth: 0.8, bottomWidth: 0.68)
                     .fill(color(for: .core))
-                    .frame(width: w * 0.28, height: h * 0.16)
-                    .position(x: w * 0.5, y: h * 0.50)
+                    .frame(width: w * 0.30, height: h * 0.15)
+                    .shadow(color: shadow, radius: 2, x: 0, y: 2)
+                    .position(x: w * 0.5, y: h * 0.48)
 
                 // Shoulders
-                HStack(spacing: w * 0.42) {
-                    Circle().fill(color(for: .shoulders)).frame(width: w * 0.14, height: w * 0.14)
-                    Circle().fill(color(for: .shoulders)).frame(width: w * 0.14, height: w * 0.14)
+                HStack(spacing: w * 0.40) {
+                    Circle().fill(color(for: .shoulders)).frame(width: w * 0.15, height: w * 0.15)
+                    Circle().fill(color(for: .shoulders)).frame(width: w * 0.15, height: w * 0.15)
                 }
-                .position(x: w * 0.5, y: h * 0.22)
+                .shadow(color: shadow, radius: 2, x: 0, y: 2)
+                .position(x: w * 0.5, y: h * 0.21)
+
+                // Neck
+                RoundedRectangle(cornerRadius: w * 0.02, style: .continuous)
+                    .fill(Color.white.opacity(0.55))
+                    .frame(width: w * 0.10, height: h * 0.045)
+                    .position(x: w * 0.5, y: h * 0.115)
 
                 // Head (decorative, not tied to a muscle group)
                 Circle()
                     .fill(Color.white.opacity(0.85))
-                    .frame(width: w * 0.20, height: w * 0.20)
-                    .position(x: w * 0.5, y: h * 0.08)
+                    .frame(width: w * 0.19, height: w * 0.19)
+                    .shadow(color: shadow, radius: 2, x: 0, y: 2)
+                    .position(x: w * 0.5, y: h * 0.07)
             }
         }
     }
@@ -466,5 +526,19 @@ struct MuscleRecoveryLegend: View {
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.white.opacity(0.6))
         }
+    }
+}
+
+// MARK: - AnatomicalBodyFigureView
+
+/// Displays the provided anatomical reference illustration. Unlike
+/// MuscleRecoveryFigure, this is a single flattened image (not separated
+/// per-muscle layers), so its colors are fixed at the asset level rather
+/// than driven by live recovery data.
+struct AnatomicalBodyFigureView: View {
+    var body: some View {
+        Image("AnatomicalBodyFigure")
+            .resizable()
+            .scaledToFit()
     }
 }
