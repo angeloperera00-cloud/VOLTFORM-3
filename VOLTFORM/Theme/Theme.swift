@@ -12,7 +12,7 @@ extension Color {
     }
 
     static let voltLime = Color(hex: 0xC8FF3D)
-    static let voltLimeDeep = Color(hex: 0x86B818)
+    static let voltLimeDeep = Color(hex: 0x9FDA1F)
     static let voltViolet = Color(hex: 0x2D1B69)
     static let voltBlack = Color(hex: 0x050505)
     static let voltOffWhite = Color(hex: 0x0A0A09)       // screen background (was off-white)
@@ -21,8 +21,8 @@ extension Color {
     static let voltTextDark = Color(hex: 0xF7F6F0)       // primary text/icons on the new dark surfaces (was near-black)
     static let voltTextMuted = Color(hex: 0x9C9C95)      // secondary text, lightened for legibility on black
     static let voltDarkCard = Color(hex: 0x151513)
-    static let voltWarning = Color(hex: 0xE8A13C)
-    static let voltDanger = Color(hex: 0xE84545)
+    static let voltWarning = Color(hex: 0xFFA836)
+    static let voltDanger = Color(hex: 0xFF3B3B)
     /// Warm gold used for "moderate/developing" states — sits between lime
     /// and red in hue rather than a flat system-amber, so it reads as part
     /// of the app's own palette instead of a generic warning color.

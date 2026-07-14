@@ -99,7 +99,7 @@ struct HomeView: View {
     }
 
     private func liftCard(workout: PlannedWorkout, label: String) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(label)
                     .font(.system(size: 13, weight: .semibold))
@@ -114,28 +114,37 @@ struct HomeView: View {
                     .clipShape(Capsule())
             }
 
-            HStack(alignment: .top, spacing: 14) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(workout.name)
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundStyle(Color.voltTextDark)
-                    Text("\(workout.durationMinutes) min · \(workout.exercises.count) Exercises")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.voltTextMuted)
-                    Text(workout.muscles.map(\.rawValue).joined(separator: " · "))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color.voltLimeDeep)
-                }
-                Spacer()
-                BodyFigurePlaceholder(dark: false)
-                    .frame(width: 74, height: 100)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(workout.name)
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundStyle(Color.voltTextDark)
+                Text("\(workout.durationMinutes) min · \(workout.exercises.count) Exercises")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.voltTextMuted)
+                Text(workout.muscles.map(\.rawValue).joined(separator: " · "))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color.voltLimeDeep)
             }
+
+            Spacer(minLength: 26)
 
             PrimaryButton(title: "Start Workout", icon: "play.fill", style: .lime) {
                 activeSession = StorageService.startSession(from: workout, context: context)
             }
         }
         .padding(20)
+        .frame(height: 230)
+        .background(alignment: .bottom) {
+            Image("TodaysPlanAthlete")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity)
+                .frame(height: 190)
+                .clipped()
+                .scaleEffect(1.5)
+                .offset(y: -10)
+                .allowsHitTesting(false)
+        }
         .background(Color.voltCard)
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 14, x: 0, y: 6)
