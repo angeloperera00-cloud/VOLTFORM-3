@@ -234,7 +234,7 @@ struct WorkoutView: View {
                     Text("AI Program · \(program.split.rawValue)")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(Color.voltTextDark)
-                    Text("Built for your \(scans.first?.bodyType.rawValue ?? profile.currentBodyType.rawValue) body → \(profile.dreamBody.rawValue) goal")
+                    Text(" \(scans.first?.bodyType.rawValue ?? profile.currentBodyType.rawValue) body → \(profile.dreamBody.rawValue) goal")
                         .font(.system(size: 12))
                         .foregroundStyle(Color.voltTextMuted)
                 }
@@ -379,12 +379,12 @@ struct WorkoutView: View {
             }
             ForEach(completed) { session in
                 HStack(spacing: 14) {
-                    Image(systemName: "checkmark.seal.fill")
+                    Image(systemName: session.muscles.first?.icon ?? "dumbbell.fill")
                         .font(.system(size: 18))
-                        .foregroundStyle(Color.voltLimeDeep)
+                        .foregroundStyle(Color.voltOnLime)
                         .frame(width: 44, height: 44)
-                        .background(Color.voltLime.opacity(0.25))
-                        .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+                        .background(Color.voltLime)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     VStack(alignment: .leading, spacing: 3) {
                         Text(session.name)
                             .font(.system(size: 15, weight: .semibold))
