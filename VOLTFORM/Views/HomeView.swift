@@ -68,16 +68,6 @@ struct HomeView: View {
                     .foregroundStyle(Color.voltTextMuted)
             }
             Spacer()
-            Button { switchTab(.profile) } label: {
-                ZStack {
-                    Circle().fill(Color.voltLime)
-                    Text(String(profile?.firstName.prefix(1) ?? "A"))
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(Color.voltOnLime)
-                }
-                .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
         }
     }
 
@@ -126,23 +116,28 @@ struct HomeView: View {
                     .foregroundStyle(Color.voltLimeDeep)
             }
 
-            Spacer(minLength: 26)
+            Spacer(minLength: 1)
 
-            PrimaryButton(title: "Start Workout", icon: "play.fill", style: .lime) {
-                activeSession = StorageService.startSession(from: workout, context: context)
+            HStack {
+                PrimaryButton(title: "Start Workout", icon: "play.fill", style: .lime) {
+                    activeSession = StorageService.startSession(from: workout, context: context)
+                }
+                .frame(width: 240)
+
+                Spacer()
             }
         }
         .padding(20)
-        .frame(height: 230)
+        .frame(height: 205)
         .background(alignment: .bottom) {
             Image("TodaysPlanAthlete")
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(maxWidth: .infinity)
                 .frame(height: 190)
+                .scaleEffect(1.46)
+                .offset(x: -33, y: -28)
                 .clipped()
-                .scaleEffect(1.5)
-                .offset(y: -10)
                 .allowsHitTesting(false)
         }
         .background(Color.voltCard)
