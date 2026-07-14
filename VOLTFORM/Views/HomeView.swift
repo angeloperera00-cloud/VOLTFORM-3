@@ -134,7 +134,7 @@ struct HomeView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(maxWidth: .infinity)
-                .frame(height: 190)
+                .frame(height: 184)
                 .scaleEffect(1.46)
                 .offset(x: -33, y: -28)
                 .clipped()

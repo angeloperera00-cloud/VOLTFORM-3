@@ -230,17 +230,9 @@ struct WorkoutView: View {
         return VStack(spacing: 14) {
             // Split header
             VStack(alignment: .leading, spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("AI Program · \(program.split.rawValue)")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(Color.voltTextDark)
-                    Text(" \(scans.first?.bodyType.rawValue ?? profile.currentBodyType.rawValue) body → \(profile.dreamBody.rawValue) goal")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color.voltTextMuted)
-                }
-                Text(program.split.rationale)
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.voltTextMuted)
+                Text("AI Program · \(program.split.rawValue)")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(Color.voltTextDark)
             }
             .voltCard()
 
