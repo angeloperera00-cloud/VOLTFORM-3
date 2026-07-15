@@ -134,7 +134,7 @@ struct HomeView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(maxWidth: .infinity)
-                .frame(height: 184)
+                .frame(height: 190)
                 .scaleEffect(1.46)
                 .offset(x: -33, y: -28)
                 .clipped()
@@ -146,7 +146,7 @@ struct HomeView: View {
     }
 
     private func cardioCard(type: CardioType, minutes: Int, label: String) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(label)
                     .font(.system(size: 13, weight: .semibold))
@@ -160,33 +160,41 @@ struct HomeView: View {
                     .foregroundStyle(Color.voltOnLime)
                     .clipShape(Capsule())
             }
-            HStack(alignment: .top, spacing: 14) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(type.rawValue)
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundStyle(Color.voltTextDark)
-                    Text("\(minutes) min · Zone 2 effort")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.voltTextMuted)
-                    Text("Your AI program scheduled cardio today. Lifting muscles get a chance to recover.")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color.voltTextDark)
-                }
-                Spacer()
-                Image(systemName: type.icon)
-                    .font(.system(size: 44))
-                    .foregroundStyle(Color.voltLimeDeep)
-                    .frame(width: 74, height: 100)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(type.rawValue)
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundStyle(Color.voltTextDark)
+                Text("\(minutes) min · Zone 2 effort")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.voltTextMuted)
+                Text("Your AI program scheduled cardio today.Lifting muscles get a chance to recover.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.voltTextDark)
             }
+
+            Spacer(minLength: 1)
         }
         .padding(20)
+        .frame(height: 205)
+        .background(alignment: .bottom) {
+            Image("TodaysPlanAthlete")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity)
+                .frame(height: 190)
+                .scaleEffect(1.46)
+                .offset(x: -33, y: -28)
+                .clipped()
+                .allowsHitTesting(false)
+        }
         .background(Color.voltCard)
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 14, x: 0, y: 6)
     }
 
     private func restCard(label: String) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(label)
                     .font(.system(size: 13, weight: .semibold))
@@ -200,23 +208,31 @@ struct HomeView: View {
                     .foregroundStyle(Color.voltOnLime)
                     .clipShape(Capsule())
             }
-            HStack(alignment: .top, spacing: 14) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Recovery Day")
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundStyle(Color.voltTextDark)
-                    Text("Muscle grows while you rest. Your AI program planned this on purpose.")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.voltTextMuted)
-                }
-                Spacer()
-                Image(systemName: "moon.zzz.fill")
-                    .font(.system(size: 44))
-                    .foregroundStyle(Color.voltLimeDeep)
-                    .frame(width: 74, height: 100)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Recovery Day")
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundStyle(Color.voltTextDark)
+                Text("Muscle grows while you rest. Your AI program planned this on purpose.")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.voltTextMuted)
             }
+
+            Spacer(minLength: 1)
         }
         .padding(20)
+        .frame(height: 205)
+        .background(alignment: .bottom) {
+            Image("TodaysPlanAthlete")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity)
+                .frame(height: 190)
+                .scaleEffect(1.46)
+                .offset(x: -33, y: -28)
+                .clipped()
+                .allowsHitTesting(false)
+        }
         .background(Color.voltCard)
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 14, x: 0, y: 6)
