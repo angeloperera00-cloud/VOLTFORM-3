@@ -264,7 +264,7 @@ struct BodyView: View {
                                 .font(.system(size: 14))
                                 .foregroundStyle(.white.opacity(0.4))
                         }
-                        Text(scan.postureScore >= 88 ? "Solid alignment. Keep training your core and upper back." : "Slight forward-shoulder tendency detected. Face pulls and rows will help.")
+                        Text(scan.postureScore >= 88 ? "Solid alignment. Keep training your core and upper back." : "Slight forward shoulder tendency detected. Face pulls and rows will help.")
                             .font(.system(size: 13))
                             .foregroundStyle(.white.opacity(0.7))
                     }

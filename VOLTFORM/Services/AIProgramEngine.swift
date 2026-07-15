@@ -109,7 +109,7 @@ enum AIProgramEngine {
         switch bodyType {
         case .overweight:
             return CardioPlan(type: .walking, sessionsPerWeek: 5, minutes: 40,
-                              note: "Low-impact steady cardio protects your joints while creating a big calorie burn.")
+                              note: "Low impact steady cardio protects your joints while creating a big calorie burn.")
         case .endomorph:
             return CardioPlan(type: .cycling, sessionsPerWeek: 3, minutes: 30,
                               note: "Steady cycling plus one weekly HIIT finisher keeps your metabolism high.")
