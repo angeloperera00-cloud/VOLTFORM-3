@@ -488,14 +488,14 @@ struct AppPreferencesView: View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 20) {
                 DetailSection(title: "Notifications") {
-                    ToggleRow(label: "Muscle-ready reminders", isOn: $notificationsEnabled)
+                    ToggleRow(label: "Muscle ready reminders", isOn: $notificationsEnabled)
                         .onChange(of: notificationsEnabled) { _, enabled in
                             if enabled { NotificationService.requestAuthorization() }
                             else { NotificationService.cancelAll() }
                         }
                 }
                 DetailSection(title: "Units") {
-                    ToggleRow(label: "Use metric (kg / cm)", isOn: $useMetric)
+                    ToggleRow(label: "Use metric (kg/cm)", isOn: $useMetric)
                 }
             }
             .padding(.horizontal, 20)

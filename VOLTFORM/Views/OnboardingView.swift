@@ -144,7 +144,7 @@ private struct LevelStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(manager: manager, title: "Your fitness level", subtitle: "Recovery time is personal — beginners need more of it.")
+            StepHeader(manager: manager, title: "Your fitness level", subtitle: "Recovery time is personal beginners need more of it.")
 
             VStack(spacing: 12) {
                 ForEach(FitnessLevel.allCases, id: \.self) { level in
@@ -285,7 +285,7 @@ private struct AboutYouStep: View {
                 if let weight = imported.weightKg { manager.weight = String(format: "%.1f", weight); fields.append("weight") }
                 if let gender = imported.gender { manager.gender = gender; fields.append("gender") }
                 importMessage = fields.isEmpty
-                    ? "No Health data found — you can still enter these manually."
+                    ? "No Health data found you can still enter these manually."
                     : "Imported \(fields.joined(separator: ", ")) from Health."
             }
         }
@@ -440,7 +440,7 @@ private struct OnboardingScanStep: View {
                 Text("Body scan")
                     .font(.system(size: 26, weight: .bold))
                     .foregroundStyle(Color.voltTextDark)
-                Text("Take a quick photo to analyze your current physique. This helps us fine-tune your recovery and performance.")
+                Text("Take a quick photo to analyze your current physique. This helps us fine tune your recovery and performance.")
                     .font(.system(size: 14))
                     .foregroundStyle(Color.voltTextMuted)
                     .multilineTextAlignment(.center)

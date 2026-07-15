@@ -118,7 +118,7 @@ struct RecoveryCheckInSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Daily Check-in")
+            Text("Daily Check in")
                 .font(.system(size: 21, weight: .bold))
                 .foregroundStyle(Color.voltTextDark)
 
@@ -162,7 +162,7 @@ struct RecoveryCheckInSheet: View {
                 )
             }
 
-            PrimaryButton(title: "Save Check-in") {
+            PrimaryButton(title: "Save Check in") {
                 let checkIn = DailyRecoveryCheckIn(date: .now, sleepHours: sleepHours, hydration: hydration, soreness: soreness)
                 context.insert(checkIn)
                 if let profile = profiles.first {
