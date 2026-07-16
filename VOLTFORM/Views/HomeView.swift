@@ -168,8 +168,8 @@ struct HomeView: View {
                 Text("\(minutes) min · Zone 2 effort")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(Color.voltTextMuted)
-                Text("Your AI program scheduled cardio today.Lifting muscles get a chance to recover.")
-                    .font(.system(size: 12))
+                Text("Your AI scheduled cardio today")
+                    .font(.system(size: 14.05))
                     .foregroundStyle(Color.voltTextDark)
             }
 
