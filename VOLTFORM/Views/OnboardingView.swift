@@ -85,29 +85,48 @@ private struct WelcomeStep: View {
     let manager: OnboardingStateManager
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            StepHeader(manager: manager, title: "Welcome to VOLTFORM", subtitle: "Train smarter with a plan built around your body and how it recovers.")
+        ZStack {
+            Color.black.ignoresSafeArea()
 
-            Spacer()
-
-            ZStack {
-                Circle()
-                    .fill(Color.voltLime.opacity(0.18))
-                    .frame(width: 260, height: 260)
-                Image(systemName: "figure.run")
+            // Full-bleed hero
+            GeometryReader { geo in
+                Image("OnboardingHero")
                     .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(Color.voltTextDark)
-                    .frame(height: 140)
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 300)
+            .ignoresSafeArea()
 
-            Spacer()
+            // Top scrim for headline legibility
+            LinearGradient(
+                colors: [.black.opacity(0.75), .black.opacity(0.25), .clear],
+                startPoint: .top,
+                endPoint: .center
+            )
+            .ignoresSafeArea()
 
-            PrimaryButton(title: "Get Started", icon: "arrow.right", style: .lime) { manager.next() }
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Your\nAI Fitness\nCompanion")
+                    .font(.system(size: 48, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineSpacing(2)
+                    .padding(.top, 32)
+
+                Text("Personalized workouts, smart meal plans, and real-time insights — all powered by AI.")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.white.opacity(0.65))
+                    .lineSpacing(3)
+                    .padding(.top, 16)
+                    .padding(.trailing, 48)
+
+                Spacer()
+
+                PrimaryButton(title: "Get Started", icon: "play.fill", style: .lime) { manager.next() }
+            }
+            .padding(24)
         }
-        .padding(24)
+        .preferredColorScheme(.dark)
     }
 }
 
