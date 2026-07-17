@@ -113,7 +113,7 @@ private struct WelcomeStep: View {
                     .lineSpacing(2)
                     .padding(.top, 32)
 
-                Text("Personalized workouts, smart meal plans, and real-time insights — all powered by AI.")
+                Text("Personalized workouts, smart meal plans, and real time insights all powered by AI.")
                     .font(.system(size: 18))
                     .foregroundStyle(.white.opacity(0.65))
                     .lineSpacing(3)
