@@ -344,7 +344,7 @@ private struct DreamBodyStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(manager: manager, title: "Your dream body", subtitle: "The gap between where you are and where you're going shapes your plan.")
+            StepHeader(manager: manager, title: "Your dream body", subtitle: "The gap between where you are and where you're going shapes your plan")
 
             VStack(spacing: 12) {
                 ForEach(BodyType.dreamOptions, id: \.self) { body in
