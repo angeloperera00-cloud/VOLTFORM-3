@@ -252,7 +252,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = VOLTFORM/Info.plist;
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_CFBundleDisplayName = "Volt AI - Gym Recovery Coach";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCameraUsageDescription = "VOLTFORM uses the camera to scan your body and estimate your physique for personalized workout and recovery plans.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "VOLTFORM reads your workout and activity data from Apple Health to track your training progress and personalize your fitness insights.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "VOLTFORM saves your completed workouts to Apple Health so your training is reflected in your health records.";
@@ -286,7 +287,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = VOLTFORM/Info.plist;
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_CFBundleDisplayName = "Volt AI - Gym Recovery Coach";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCameraUsageDescription = "VOLTFORM uses the camera to scan your body and estimate your physique for personalized workout and recovery plans.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "VOLTFORM reads your workout and activity data from Apple Health to track your training progress and personalize your fitness insights.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "VOLTFORM saves your completed workouts to Apple Health so your training is reflected in your health records.";

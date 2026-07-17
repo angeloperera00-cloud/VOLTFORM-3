@@ -1,5 +1,8 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
+import Vision
+import UIKit
 
 struct OnboardingView: View {
     @Environment(\.modelContext) private var context
@@ -113,7 +116,7 @@ private struct WelcomeStep: View {
                     .lineSpacing(2)
                     .padding(.top, 32)
 
-                Text("Personalized workouts, smart meal plans, and real time insights all powered by AI.")
+                Text("Personalized workouts, smart meal plans, and real time insights all powered by AI")
                     .font(.system(size: 18))
                     .foregroundStyle(.white.opacity(0.65))
                     .lineSpacing(3)
@@ -419,10 +422,22 @@ private struct RecoverySetupStep: View {
     }
 }
 
-// MARK: - Step 8: Body scan (skippable)
+// MARK: - Step 8: Body scan (camera or photo library, Vision-verified)
 
 private struct OnboardingScanStep: View {
     @Bindable var manager: OnboardingStateManager
+
+    @State private var selectedItem: PhotosPickerItem?
+    @State private var scanImage: UIImage?
+    @State private var showCamera = false
+    @State private var isScanning = false
+    @State private var bodyDetected = false
+    @State private var scanMessage: String?
+    @State private var showNoBodyAlert = false
+
+    private var cameraAvailable: Bool {
+        UIImagePickerController.isSourceTypeAvailable(.camera)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -439,6 +454,7 @@ private struct OnboardingScanStep: View {
                 .buttonStyle(.plain)
                 Spacer()
                 Button("Skip") {
+                    BodyImageAnalyzer.lastMetrics = nil
                     manager.didScan = false
                     manager.next()
                 }
@@ -453,31 +469,238 @@ private struct OnboardingScanStep: View {
                     ScanCorners()
                         .stroke(Color.voltLime, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                         .frame(width: 220, height: 300)
-                    BodyFigurePlaceholder(dark: false)
-                        .frame(height: 220)
+
+                    if let scanImage {
+                        Image(uiImage: scanImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 196, height: 276)
+                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                            .overlay {
+                                if isScanning { ScanSweepOverlay() }
+                            }
+                    } else {
+                        BodyFigurePlaceholder(dark: false)
+                            .frame(height: 220)
+                    }
                 }
+
                 Text("Body scan")
                     .font(.system(size: 26, weight: .bold))
                     .foregroundStyle(Color.voltTextDark)
-                Text("Take a quick photo to analyze your current physique. This helps us fine tune your recovery and performance.")
+
+                Text(statusText)
                     .font(.system(size: 14))
-                    .foregroundStyle(Color.voltTextMuted)
+                    .foregroundStyle(bodyDetected ? Color.voltLimeDeep : Color.voltTextMuted)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 16)
+                    .animation(.easeInOut, value: statusText)
             }
 
             Spacer()
 
-            PrimaryButton(title: "Start Body Scan", icon: "camera.fill", style: .lime) {
-                manager.didScan = true
-                manager.next()
-            }
-            Text("You can skip this and do it later")
-                .font(.system(size: 12))
-                .foregroundStyle(Color.voltTextMuted)
-                .padding(.top, 10)
+            bottomActions
         }
         .padding(24)
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraPicker { image in
+                handlePicked(image)
+            }
+            .ignoresSafeArea()
+        }
+        .onChange(of: selectedItem) { _, item in
+            guard let item else { return }
+            Task { @MainActor in
+                if let data = try? await item.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    handlePicked(image)
+                }
+                selectedItem = nil
+            }
+        }
+        .alert("No body detected", isPresented: $showNoBodyAlert) {
+            Button("Retake") { reset() }
+            Button("Use anyway") {
+                bodyDetected = true
+                scanMessage = "Photo saved we'll fine tune as you train."
+            }
+        } message: {
+            Text("Make sure your full body is visible and well lit, then try again.")
+        }
+    }
+
+    private var statusText: String {
+        if isScanning { return "Scanning your photo..." }
+        if let scanMessage { return scanMessage }
+        return "Take a quick photo or choose one from your library to analyze your current physique. This helps us fine tune your recovery and performance."
+    }
+
+    @ViewBuilder
+    private var bottomActions: some View {
+        if isScanning {
+            HStack(spacing: 10) {
+                ProgressView()
+                    .tint(Color.voltOnLime)
+                Text("Analyzing...")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Color.voltOnLime)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(Color.voltLime.opacity(0.6))
+            .clipShape(Capsule())
+        } else if bodyDetected {
+            VStack(spacing: 10) {
+                PrimaryButton(title: "Continue", icon: "checkmark", style: .lime) {
+                    manager.didScan = true
+                    manager.next()
+                }
+                Button("Retake photo") { reset() }
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.voltTextMuted)
+            }
+        } else {
+            VStack(spacing: 12) {
+                if cameraAvailable {
+                    PrimaryButton(title: "Start Body Scan", icon: "camera.fill", style: .lime) {
+                        showCamera = true
+                    }
+                }
+                PhotosPicker(selection: $selectedItem, matching: .images) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "photo.on.rectangle")
+                            .font(.system(size: 15, weight: .semibold))
+                        Text("Choose from Library")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    .foregroundStyle(Color.voltTextDark)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(Color.voltCard)
+                    .clipShape(Capsule())
+                    .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 3)
+                }
+                Text("You can skip this and do it later")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.voltTextMuted)
+                    .padding(.top, 4)
+            }
+        }
+    }
+
+    private func handlePicked(_ image: UIImage) {
+        scanImage = image
+        analyze(image)
+    }
+
+    private func reset() {
+        BodyImageAnalyzer.lastMetrics = nil
+        scanImage = nil
+        bodyDetected = false
+        scanMessage = nil
+        isScanning = false
+    }
+
+    private func analyze(_ image: UIImage) {
+        isScanning = true
+        bodyDetected = false
+        scanMessage = nil
+
+        let cgImage = image.cgImage
+        let orientation = CGImagePropertyOrientation(image.imageOrientation)
+
+        Task { @MainActor in
+            async let analysis = BodyImageAnalyzer.analyze(cgImage: cgImage, orientation: orientation)
+            try? await Task.sleep(nanoseconds: 1_400_000_000) // let the scan sweep play
+            let metrics = await analysis
+
+            isScanning = false
+            if let metrics {
+                BodyImageAnalyzer.lastMetrics = metrics
+                bodyDetected = true
+                scanMessage = "Body detected — \(metrics.classification.label) build, \(Int(metrics.confidence * 100))% scan confidence."
+            } else {
+                showNoBodyAlert = true
+            }
+        }
+    }
+}
+
+// MARK: - Scan sweep animation
+
+private struct ScanSweepOverlay: View {
+    @State private var progress: CGFloat = -0.25
+
+    var body: some View {
+        GeometryReader { geo in
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [.clear, Color.voltLime.opacity(0.85), .clear],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(height: 56)
+                .offset(y: progress * geo.size.height)
+                .onAppear {
+                    withAnimation(.linear(duration: 1.1).repeatForever(autoreverses: false)) {
+                        progress = 1.05
+                    }
+                }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .allowsHitTesting(false)
+    }
+}
+
+// MARK: - Camera capture
+
+private struct CameraPicker: UIViewControllerRepresentable {
+    var onImage: (UIImage) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: CameraPicker
+        init(_ parent: CameraPicker) { self.parent = parent }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.onImage(image)
+            }
+            parent.dismiss()
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
+        }
+    }
+}
+
+private extension CGImagePropertyOrientation {
+    init(_ orientation: UIImage.Orientation) {
+        switch orientation {
+        case .up: self = .up
+        case .down: self = .down
+        case .left: self = .left
+        case .right: self = .right
+        case .upMirrored: self = .upMirrored
+        case .downMirrored: self = .downMirrored
+        case .leftMirrored: self = .leftMirrored
+        case .rightMirrored: self = .rightMirrored
+        @unknown default: self = .up
+        }
     }
 }
 
