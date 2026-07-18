@@ -116,7 +116,7 @@ private struct WelcomeStep: View {
                     .lineSpacing(2)
                     .padding(.top, 32)
 
-                Text("Personalized workouts, smart meal plans, and real time insights all powered by AI")
+                Text("Personalized workouts, smart meal plans, and real time insights all powered by AI.")
                     .font(.system(size: 18))
                     .foregroundStyle(.white.opacity(0.65))
                     .lineSpacing(3)
@@ -344,11 +344,16 @@ private struct DreamBodyStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(manager: manager, title: "Your dream body", subtitle: "The gap between where you are and where you're going shapes your plan")
+            StepHeader(manager: manager, title: "Choose your dream body", subtitle: "Select the physique that matches your goal so we can build your personalized plan.")
 
             VStack(spacing: 12) {
                 ForEach(BodyType.dreamOptions, id: \.self) { body in
-                    OptionCard(title: body.rawValue, subtitle: body.subtitle, icon: body.icon, isSelected: manager.dreamBody == body) {
+                    DreamBodyCard(
+                        title: body.rawValue,
+                        subtitle: body.subtitle,
+                        imageName: "DreamBody\(body.rawValue)",
+                        isSelected: manager.dreamBody == body
+                    ) {
                         manager.dreamBody = body
                     }
                 }
@@ -359,6 +364,62 @@ private struct DreamBodyStep: View {
             PrimaryButton(title: "Continue", style: .lime, isDisabled: manager.dreamBody == nil) { manager.next() }
         }
         .padding(24)
+    }
+}
+
+// MARK: - Dream body image card
+
+private struct DreamBodyCard: View {
+    let title: String
+    let subtitle: String
+    let imageName: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 88, height: 118)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .colorMultiply(isSelected ? Color.voltLime : .white)
+                    .animation(.easeInOut(duration: 0.2), value: isSelected)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color.voltTextDark)
+                    Text(subtitle)
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.voltTextMuted)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer()
+
+                ZStack {
+                    Circle()
+                        .stroke(isSelected ? Color.voltLime : Color.voltTextMuted.opacity(0.4), lineWidth: 2)
+                        .frame(width: 24, height: 24)
+                    if isSelected {
+                        Circle()
+                            .fill(Color.voltLime)
+                            .frame(width: 12, height: 12)
+                    }
+                }
+            }
+            .padding(14)
+            .background(Color.voltCard)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(isSelected ? Color.voltLime : .clear, lineWidth: 2)
+            )
+            .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 3)
+        }
+        .buttonStyle(.plain)
     }
 }
 
