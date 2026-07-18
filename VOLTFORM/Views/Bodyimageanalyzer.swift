@@ -15,6 +15,36 @@ struct BodyImageMetrics {
     /// 0...1 — average Vision joint confidence for the joints used.
     let confidence: Double
     let classification: BodyImageClassification
+    /// Real posture measurements from joint positions. Nil when legs/head weren't visible enough.
+    let posture: PostureMetrics?
+}
+
+/// All values measured from Vision joint coordinates — nothing invented.
+struct PostureMetrics {
+    /// Shoulder line angle vs horizontal, degrees. Positive = left shoulder higher.
+    let shoulderTiltDegrees: Double
+    /// Vertical shoulder height difference in cm (needs user height; nil otherwise).
+    let shoulderOffsetCm: Double?
+    /// Which side sits lower, for display ("Right shoulder slightly lower").
+    let lowerShoulder: BodySide?
+    /// Hip line angle vs horizontal, degrees.
+    let pelvicTiltDegrees: Double
+    /// Lateral head tilt vs vertical, degrees (front view CAN measure this — unlike forward-head).
+    let headTiltDegrees: Double?
+    /// Max horizontal knee deviation from the hip–ankle line, as fraction of leg length. 0 = perfect.
+    let kneeDeviation: Double
+    /// Stance asymmetry between ankles, 0 = perfectly even.
+    let ankleAsymmetry: Double
+    /// 40...98, computed from the deviations above.
+    let score: Int
+
+    var kneeAlignmentLabel: String { kneeDeviation < 0.035 ? "Good" : (kneeDeviation < 0.07 ? "Fair" : "Off") }
+    var ankleAlignmentLabel: String { ankleAsymmetry < 0.04 ? "Good" : (ankleAsymmetry < 0.08 ? "Fair" : "Off") }
+}
+
+enum BodySide: String {
+    case left = "Left"
+    case right = "Right"
 }
 
 enum BodyImageClassification: String {
@@ -31,27 +61,28 @@ enum BodyImageClassification: String {
 
 enum BodyImageAnalyzer {
 
-    /// Metrics from the most recent successful scan. Set by the onboarding scan step,
-    /// consumed in `finalize()` when building the BodyScan. Cleared on skip/retake.
+    /// Metrics from the most recent successful scan. Set by the scan flow,
+    /// consumed when building the BodyScanResult. Cleared on skip/retake.
     static var lastMetrics: BodyImageMetrics?
 
     /// Returns nil only when no human is found in the image.
+    /// Pass the user's height to get shoulder offset in real cm.
     /// Fail-open on internal errors: if a body is detected but measurement fails,
     /// returns low-confidence `.average` metrics so the flow never dead-ends.
-    static func analyze(cgImage: CGImage?, orientation: CGImagePropertyOrientation) async -> BodyImageMetrics? {
+    static func analyze(cgImage: CGImage?, orientation: CGImagePropertyOrientation, userHeightCm: Double? = nil) async -> BodyImageMetrics? {
         guard let cgImage else {
             return fallbackMetrics() // corrupt input — fail open
         }
         return await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
-                continuation.resume(returning: performAnalysis(cgImage: cgImage, orientation: orientation))
+                continuation.resume(returning: performAnalysis(cgImage: cgImage, orientation: orientation, userHeightCm: userHeightCm))
             }
         }
     }
 
     // MARK: Pipeline
 
-    private static func performAnalysis(cgImage: CGImage, orientation: CGImagePropertyOrientation) -> BodyImageMetrics? {
+    private static func performAnalysis(cgImage: CGImage, orientation: CGImagePropertyOrientation, userHeightCm: Double?) -> BodyImageMetrics? {
         let handler = VNImageRequestHandler(cgImage: cgImage, orientation: orientation)
 
         let poseRequest = VNDetectHumanBodyPoseRequest()
@@ -67,7 +98,6 @@ enum BodyImageAnalyzer {
 
         // 1. Require a human somewhere in the frame.
         guard let pose = poseRequest.results?.first else {
-            // No pose — try upper-body rectangles before declaring "no human".
             let rectRequest = VNDetectHumanRectanglesRequest()
             rectRequest.upperBodyOnly = true
             try? handler.perform([rectRequest])
@@ -95,6 +125,9 @@ enum BodyImageAnalyzer {
             return fallbackMetrics(confidence: jointConfidence * 0.5)
         }
 
+        let maskWidth = Double(CVPixelBufferGetWidth(mask))
+        let maskHeight = Double(CVPixelBufferGetHeight(mask))
+
         // Vision points: normalized, origin bottom-left. Mask rows: top-down.
         let shoulderY = (Double(lShoulder.location.y) + Double(rShoulder.location.y)) / 2.0
         let hipY = (Double(lHip.location.y) + Double(rHip.location.y)) / 2.0
@@ -108,7 +141,6 @@ enum BodyImageAnalyzer {
             return fallbackMetrics(confidence: jointConfidence * 0.5)
         }
 
-        let maskHeight = Double(CVPixelBufferGetHeight(mask))
         let torsoLengthPixels = abs(shoulderY - hipY) * maskHeight
         guard torsoLengthPixels > 1 else {
             return fallbackMetrics(confidence: jointConfidence * 0.5)
@@ -119,14 +151,147 @@ enum BodyImageAnalyzer {
         let sToH = shoulderWidth / hipWidth
         let bulk = waistWidth / torsoLengthPixels
 
+        let posture = measurePosture(
+            points: points,
+            lShoulder: lShoulder, rShoulder: rShoulder,
+            lHip: lHip, rHip: rHip,
+            mask: mask, maskWidth: maskWidth, maskHeight: maskHeight,
+            userHeightCm: userHeightCm
+        )
+
         return BodyImageMetrics(
             shoulderToWaistRatio: sToW,
             waistToHipRatio: wToH,
             shoulderToHipRatio: sToH,
             torsoBulk: bulk,
             confidence: jointConfidence,
-            classification: classify(shoulderToWaist: sToW, torsoBulk: bulk)
+            classification: classify(shoulderToWaist: sToW, torsoBulk: bulk),
+            posture: posture
         )
+    }
+
+    // MARK: Posture measurement (all from real joint coordinates)
+
+    private static func measurePosture(
+        points: [VNHumanBodyPoseObservation.JointName: VNRecognizedPoint],
+        lShoulder: VNRecognizedPoint, rShoulder: VNRecognizedPoint,
+        lHip: VNRecognizedPoint, rHip: VNRecognizedPoint,
+        mask: CVPixelBuffer, maskWidth: Double, maskHeight: Double,
+        userHeightCm: Double?
+    ) -> PostureMetrics {
+
+        // Convert normalized joints to pixel space so angles aren't distorted by aspect ratio.
+        func px(_ p: VNRecognizedPoint) -> (x: Double, y: Double) {
+            (Double(p.location.x) * maskWidth, Double(p.location.y) * maskHeight)
+        }
+
+        let ls = px(lShoulder), rs = px(rShoulder)
+        let lh = px(lHip), rh = px(rHip)
+
+        // Shoulder tilt: angle of the shoulder line vs horizontal.
+        let shoulderTilt = atan2(ls.y - rs.y, abs(ls.x - rs.x)) * 180 / .pi
+        let lowerShoulder: BodySide? = abs(ls.y - rs.y) < 1 ? nil : (ls.y < rs.y ? .left : .right)
+
+        // Pelvic tilt: angle of the hip line vs horizontal.
+        let pelvicTilt = atan2(lh.y - rh.y, abs(lh.x - rh.x)) * 180 / .pi
+
+        // Shoulder offset in cm: scale pixels to real height using the person's pixel height.
+        var shoulderOffsetCm: Double?
+        if let userHeightCm, let personPixelHeight = personHeight(in: mask), personPixelHeight > 10 {
+            let cmPerPixel = userHeightCm / personPixelHeight
+            shoulderOffsetCm = abs(ls.y - rs.y) * cmPerPixel
+        }
+
+        // Lateral head tilt: nose vs mid-shoulder vertical (front view measures side tilt, not forward-head).
+        var headTilt: Double?
+        if let nose = points[.nose], nose.confidence > 0.3 {
+            let n = px(nose)
+            let midShoulder = ((ls.x + rs.x) / 2, (ls.y + rs.y) / 2)
+            let dx = n.x - midShoulder.0
+            let dy = n.y - midShoulder.1
+            if abs(dy) > 1 {
+                headTilt = abs(atan2(dx, dy) * 180 / .pi)
+            }
+        }
+
+        // Knee deviation: horizontal distance of each knee from its hip–ankle line, / leg length.
+        var kneeDeviation = 0.0
+        var ankleAsymmetry = 0.0
+        if
+            let lKnee = points[.leftKnee], lKnee.confidence > 0.3,
+            let rKnee = points[.rightKnee], rKnee.confidence > 0.3,
+            let lAnkle = points[.leftAnkle], lAnkle.confidence > 0.3,
+            let rAnkle = points[.rightAnkle], rAnkle.confidence > 0.3
+        {
+            let lk = px(lKnee), rk = px(rKnee)
+            let la = px(lAnkle), ra = px(rAnkle)
+
+            func deviation(hip: (x: Double, y: Double), knee: (x: Double, y: Double), ankle: (x: Double, y: Double)) -> Double {
+                let legLength = hypot(hip.x - ankle.x, hip.y - ankle.y)
+                guard legLength > 1 else { return 0 }
+                // Expected knee x if the leg were a straight line at the knee's height.
+                let t = (knee.y - hip.y) / (ankle.y - hip.y == 0 ? 1 : ankle.y - hip.y)
+                let expectedX = hip.x + (ankle.x - hip.x) * t
+                return abs(knee.x - expectedX) / legLength
+            }
+
+            kneeDeviation = max(deviation(hip: lh, knee: lk, ankle: la),
+                                deviation(hip: rh, knee: rk, ankle: ra))
+
+            // Ankle asymmetry: how unevenly the feet sit relative to the hip center.
+            let hipCenterX = (lh.x + rh.x) / 2
+            let leftSpread = abs(la.x - hipCenterX)
+            let rightSpread = abs(ra.x - hipCenterX)
+            let totalSpread = leftSpread + rightSpread
+            if totalSpread > 1 {
+                ankleAsymmetry = abs(leftSpread - rightSpread) / totalSpread
+            }
+        }
+
+        // Score: start at 98, subtract weighted penalties, floor at 40.
+        var score = 98.0
+        score -= min(abs(shoulderTilt), 12) * 2.2
+        score -= min(abs(pelvicTilt), 12) * 2.2
+        score -= min(headTilt ?? 0, 15) * 0.9
+        score -= min(kneeDeviation, 0.15) * 120
+        score -= min(ankleAsymmetry, 0.3) * 40
+        let finalScore = Int(max(40, min(98, score.rounded())))
+
+        return PostureMetrics(
+            shoulderTiltDegrees: shoulderTilt,
+            shoulderOffsetCm: shoulderOffsetCm,
+            lowerShoulder: lowerShoulder,
+            pelvicTiltDegrees: pelvicTilt,
+            headTiltDegrees: headTilt,
+            kneeDeviation: kneeDeviation,
+            ankleAsymmetry: ankleAsymmetry,
+            score: finalScore
+        )
+    }
+
+    /// Person height in mask pixels (topmost to bottommost body row), for cm-per-pixel scaling.
+    private static func personHeight(in mask: CVPixelBuffer) -> Double? {
+        CVPixelBufferLockBaseAddress(mask, .readOnly)
+        defer { CVPixelBufferUnlockBaseAddress(mask, .readOnly) }
+
+        guard let base = CVPixelBufferGetBaseAddress(mask) else { return nil }
+        let width = CVPixelBufferGetWidth(mask)
+        let height = CVPixelBufferGetHeight(mask)
+        let bytesPerRow = CVPixelBufferGetBytesPerRow(mask)
+
+        func rowHasBody(_ row: Int) -> Bool {
+            let p = base.advanced(by: row * bytesPerRow).assumingMemoryBound(to: UInt8.self)
+            for x in stride(from: 0, to: width, by: 4) where p[x] > 127 { return true }
+            return false
+        }
+
+        var top: Int?
+        var bottom: Int?
+        for row in stride(from: 0, to: height, by: 2) where rowHasBody(row) { top = row; break }
+        for row in stride(from: height - 1, through: 0, by: -2) where rowHasBody(row) { bottom = row; break }
+
+        guard let top, let bottom, bottom > top else { return nil }
+        return Double(bottom - top)
     }
 
     // MARK: Classification heuristics (tunable thresholds)
@@ -179,7 +344,8 @@ enum BodyImageAnalyzer {
             shoulderToHipRatio: 1.2,
             torsoBulk: 0.85,
             confidence: confidence,
-            classification: .average
+            classification: .average,
+            posture: nil
         )
     }
 }
