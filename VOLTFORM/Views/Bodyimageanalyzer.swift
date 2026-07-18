@@ -75,7 +75,11 @@ enum BodyImageAnalyzer {
         }
         return await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
-                continuation.resume(returning: performAnalysis(cgImage: cgImage, orientation: orientation, userHeightCm: userHeightCm))
+                let result = performAnalysis(cgImage: cgImage, orientation: orientation, userHeightCm: userHeightCm)
+                if let result, let posture = result.posture {
+                    PostureStore.record(posture, confidence: result.confidence)
+                }
+                continuation.resume(returning: result)
             }
         }
     }
@@ -347,5 +351,56 @@ enum BodyImageAnalyzer {
             classification: .average,
             posture: nil
         )
+    }
+}
+
+// MARK: - Posture history (persisted automatically on every successful analysis)
+
+struct PostureStore {
+    struct Entry: Codable, Identifiable {
+        var id: Date { date }
+        let date: Date
+        let score: Int
+        let shoulderTiltDegrees: Double
+        let shoulderOffsetCm: Double?
+        let lowerShoulder: String?
+        let pelvicTiltDegrees: Double
+        let headTiltDegrees: Double?
+        let kneeDeviation: Double
+        let ankleAsymmetry: Double
+        let confidence: Double
+
+        var kneeAlignmentLabel: String { kneeDeviation < 0.035 ? "Good" : (kneeDeviation < 0.07 ? "Fair" : "Off") }
+        var ankleAlignmentLabel: String { ankleAsymmetry < 0.04 ? "Good" : (ankleAsymmetry < 0.08 ? "Fair" : "Off") }
+    }
+
+    private static let key = "voltform.posture.history"
+
+    static var entries: [Entry] {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let list = try? JSONDecoder().decode([Entry].self, from: data) else { return [] }
+        return list.sorted { $0.date < $1.date }
+    }
+
+    static var latest: Entry? { entries.last }
+
+    static func record(_ posture: PostureMetrics, confidence: Double, date: Date = Date()) {
+        var list = entries
+        list.append(Entry(
+            date: date,
+            score: posture.score,
+            shoulderTiltDegrees: posture.shoulderTiltDegrees,
+            shoulderOffsetCm: posture.shoulderOffsetCm,
+            lowerShoulder: posture.lowerShoulder?.rawValue,
+            pelvicTiltDegrees: posture.pelvicTiltDegrees,
+            headTiltDegrees: posture.headTiltDegrees,
+            kneeDeviation: posture.kneeDeviation,
+            ankleAsymmetry: posture.ankleAsymmetry,
+            confidence: confidence
+        ))
+        if list.count > 50 { list.removeFirst(list.count - 50) }
+        if let data = try? JSONEncoder().encode(list) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
     }
 }
