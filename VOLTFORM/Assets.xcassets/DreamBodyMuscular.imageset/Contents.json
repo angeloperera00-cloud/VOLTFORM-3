@@ -1,0 +1,23 @@
+{
+  "images" : [
+    {
+      "filename" : "DreamBodyMuscular.imagesett.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "DreamBodyMuscular.imagesett 1.png",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "DreamBodyMuscular.imagesett 2.png",
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
