@@ -71,7 +71,7 @@ struct BodyView: View {
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
                             .fill(Color.voltDarkCard)
                         AnatomicalBodyFigureView()
-                            .padding(6)
+                            .padding(8)
                             .scaleEffect(1.04)
                     }
                     .frame(maxWidth: .infinity)

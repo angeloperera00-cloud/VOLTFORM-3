@@ -63,7 +63,7 @@ struct HomeView: View {
                 Text("\(greeting), \(profile?.firstName ?? "there") 👋")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundStyle(Color.voltTextDark)
-                Text("Let's check your body today.")
+                Text("Let's check your body today")
                     .font(.system(size: 14))
                     .foregroundStyle(Color.voltTextMuted)
             }
