@@ -25,7 +25,7 @@ struct SplashView: View {
                 HStack(spacing: 0) {
                     Text("VOLT")
                         .foregroundStyle(.white)
-                    Text("FORM")
+                    Text("AI")
                         .foregroundStyle(Color.voltLime)
                 }
                 .font(.system(size: 40, weight: .heavy))
