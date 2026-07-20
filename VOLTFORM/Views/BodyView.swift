@@ -175,7 +175,7 @@ struct BodyView: View {
                     HStack(spacing: 10) {
                         Image(systemName: "lightbulb.fill")
                             .foregroundStyle(Color.voltLime)
-                        Text("Your plan adds an extra set to \(scan.weakest.map(\.rawValue).joined(separator: " and ")) exercises to close the gap.")
+                        Text("Your plan adds an extra set to \(scan.weakest.map(\.rawValue).joined(separator: " and ")) exercises to close the gap")
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(.white.opacity(0.8))
                     }
@@ -214,7 +214,7 @@ struct BodyView: View {
                             .frame(width: 26, alignment: .trailing)
                     }
                 }
-                Text("Estimated from your latest scan — the AI program adds sets where bars are low.")
+                Text("Estimated from your latest scan the AI program adds sets where bars are low")
                     .font(.system(size: 11))
                     .foregroundStyle(.white.opacity(0.4))
             }
@@ -335,15 +335,15 @@ struct BodyView: View {
 
     private var postureAdvice: String {
         guard let e = PostureStore.latest else {
-            return "Run a new body scan to unlock detailed posture measurements."
+            return "Run a new body scan to unlock detailed posture measurements"
         }
         if abs(e.shoulderTiltDegrees) >= 2.5, let side = e.lowerShoulder {
-            return "\(side) shoulder sits slightly lower. Face pulls and rows will help improve alignment."
+            return "\(side) shoulder sits slightly lower. Face pulls and rows will help improve alignment"
         }
         if abs(e.pelvicTiltDegrees) >= 2.5 {
-            return "Slight pelvic tilt detected. Core and glute work will help level your hips."
+            return "Slight pelvic tilt detected. Core and glute work will help level your hips"
         }
-        return "Solid alignment. Keep training your core and upper back."
+        return "Solid alignment. Keep training your core and upper back"
     }
 
     private func lastWeekScore(entries: [PostureStore.Entry]) -> Int? {
