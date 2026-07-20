@@ -71,11 +71,11 @@ struct BodyView: View {
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
                             .fill(Color.voltDarkCard)
                         AnatomicalBodyFigureView()
-                            .padding(8)
+                            .padding(9)
                             .scaleEffect(1.04)
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 350)
+                    .frame(height: 355)
                     .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 
                     MuscleRecoveryLegend()
