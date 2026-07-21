@@ -116,7 +116,7 @@ private struct WelcomeStep: View {
                     .lineSpacing(2)
                     .padding(.top, 32)
 
-                Text("Personalized workouts, smart meal plans, and real time insights all powered by AI.")
+                Text("Personalized workouts, smart meal plans, and real time insights all powered by AI ")
                     .font(.system(size: 18))
                     .foregroundStyle(.white.opacity(0.65))
                     .lineSpacing(3)
@@ -140,7 +140,7 @@ private struct GoalStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(manager: manager, title: "What's your main goal?", subtitle: "Your plan and recovery targets adapt to this.")
+            StepHeader(manager: manager, title: "What's your main goal?", subtitle: "Your plan and recovery targets adapt to this")
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 12) {
@@ -166,7 +166,7 @@ private struct LevelStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(manager: manager, title: "Your fitness level", subtitle: "Recovery time is personal beginners need more of it.")
+            StepHeader(manager: manager, title: "Your fitness level", subtitle: "Recovery time is personal beginners need more of it")
 
             VStack(spacing: 12) {
                 ForEach(FitnessLevel.allCases, id: \.self) { level in
@@ -191,7 +191,7 @@ private struct TrainingDaysStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(manager: manager, title: "How often can you train?", subtitle: "We'll build your weekly split around this.")
+            StepHeader(manager: manager, title: "How often can you train?", subtitle: "We'll build your weekly split around this")
 
             VStack(spacing: 12) {
                 ForEach(3...6, id: \.self) { days in
@@ -223,7 +223,7 @@ private struct AboutYouStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(manager: manager, title: "About you", subtitle: "Used to estimate your body composition and recovery.")
+            StepHeader(manager: manager, title: "About you", subtitle: "Used to estimate your body composition and recovery")
 
             Button {
                 importFromHealth()
@@ -292,7 +292,7 @@ private struct AboutYouStep: View {
 
     private func importFromHealth() {
         guard HealthKitService.isAvailable else {
-            importMessage = "Health isn't available on this device."
+            importMessage = "Health isn't available on this device"
             return
         }
         isImporting = true
@@ -344,7 +344,7 @@ private struct DreamBodyStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(manager: manager, title: "Choose your dream body", subtitle: "Select the physique that matches your goal so we can build your personalized plan.")
+            StepHeader(manager: manager, title: "Choose your dream body", subtitle: "Select the physique that matches your goal so we can build your personalized plan")
 
             VStack(spacing: 12) {
                 ForEach(BodyType.dreamOptions, id: \.self) { body in
@@ -430,7 +430,7 @@ private struct RecoverySetupStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(manager: manager, title: "Recovery setup", subtitle: "Sleep, soreness and hydration change how fast your muscles recover.")
+            StepHeader(manager: manager, title: "Recovery setup", subtitle: "Sleep, soreness and hydration change how fast your muscles recover")
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 20) {
@@ -583,17 +583,17 @@ private struct OnboardingScanStep: View {
             Button("Retake") { reset() }
             Button("Use anyway") {
                 bodyDetected = true
-                scanMessage = "Photo saved we'll fine tune as you train."
+                scanMessage = "Photo saved we'll fine tune as you train"
             }
         } message: {
-            Text("Make sure your full body is visible and well lit, then try again.")
+            Text("Make sure your full body is visible and well lit, then try again")
         }
     }
 
     private var statusText: String {
         if isScanning { return "Scanning your photo..." }
         if let scanMessage { return scanMessage }
-        return "Take a quick photo or choose one from your library to analyze your current physique. This helps us fine tune your recovery and performance."
+        return "Take a quick photo or choose one from your library to analyze your current physique. This helps us fine tune your recovery and performance"
     }
 
     @ViewBuilder
@@ -679,7 +679,7 @@ private struct OnboardingScanStep: View {
             if let metrics {
                 BodyImageAnalyzer.lastMetrics = metrics
                 bodyDetected = true
-                scanMessage = "Body detected — \(metrics.classification.label) build, \(Int(metrics.confidence * 100))% scan confidence."
+                scanMessage = "Body detected — \(metrics.classification.label) build, \(Int(metrics.confidence * 100))% scan confidence"
             } else {
                 showNoBodyAlert = true
             }
@@ -880,7 +880,7 @@ private struct AllSetStep: View {
                 .foregroundStyle(Color.voltTextDark)
                 .padding(.top, 28)
 
-            Text("Your plan, recovery forecast and body profile are ready.")
+            Text("Your plan, recovery forecast and body profile are ready")
                 .font(.system(size: 15))
                 .foregroundStyle(Color.voltTextMuted)
                 .multilineTextAlignment(.center)
