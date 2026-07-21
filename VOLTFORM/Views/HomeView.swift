@@ -36,7 +36,7 @@ struct HomeView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 12)
+            .padding(.top, 15)
             .padding(.bottom, 24)
         }
         .background(Color.voltOffWhite)
@@ -60,7 +60,7 @@ struct HomeView: View {
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("\(greeting), \(profile?.firstName ?? "there") 👋")
+                Text("\(greeting) 👋")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundStyle(Color.voltTextDark)
                 Text("Let's check your body today")
