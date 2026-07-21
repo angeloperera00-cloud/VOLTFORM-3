@@ -53,7 +53,7 @@ struct BodyView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 32)
+            .padding(.top, 10)
             .padding(.bottom, 20)
         }
         .fullScreenCover(isPresented: $showScan) {
