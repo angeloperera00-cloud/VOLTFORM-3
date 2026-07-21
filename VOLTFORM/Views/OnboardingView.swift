@@ -111,12 +111,12 @@ private struct WelcomeStep: View {
 
             VStack(alignment: .leading, spacing: 0) {
                 Text("Your\nAI Fitness\nCompanion")
-                    .font(.system(size: 48, weight: .bold))
+                    .font(.system(size: 50, weight: .bold))
                     .foregroundStyle(.white)
                     .lineSpacing(2)
-                    .padding(.top, 32)
+                    .padding(.top, 2)
 
-                Text("Personalized workouts, smart meal plans, and real time insights all powered by AI ")
+                Text("Personalized workouts, smart meal plans, and real time insights all powered by AI")
                     .font(.system(size: 18))
                     .foregroundStyle(.white.opacity(0.65))
                     .lineSpacing(3)
@@ -780,7 +780,8 @@ private struct OnboardingScanStep: View {
         let orientation = CGImagePropertyOrientation(image.imageOrientation)
 
         Task { @MainActor in
-            async let analysis = BodyImageAnalyzer.analyze(cgImage: cgImage, orientation: orientation)
+            let heightCm = Double(manager.height)
+            async let analysis = BodyImageAnalyzer.analyze(cgImage: cgImage, orientation: orientation, userHeightCm: heightCm)
             try? await Task.sleep(nanoseconds: 1_400_000_000) // let the scan sweep play
             let metrics = await analysis
 
