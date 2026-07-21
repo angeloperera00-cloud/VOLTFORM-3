@@ -220,6 +220,7 @@ private struct AboutYouStep: View {
     @Bindable var manager: OnboardingStateManager
     @State private var isImporting = false
     @State private var importMessage: String?
+    @State private var activeField: PickerField?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -260,9 +261,9 @@ private struct AboutYouStep: View {
             }
 
             VStack(spacing: 14) {
-                fieldRow(label: "Age", text: $manager.age, unit: "years")
-                fieldRow(label: "Height", text: $manager.height, unit: "cm")
-                fieldRow(label: "Weight", text: $manager.weight, unit: "kg")
+                fieldRow(field: .age, label: "Age", text: manager.age, unit: "years")
+                fieldRow(field: .height, label: "Height", text: manager.height, unit: "cm")
+                fieldRow(field: .weight, label: "Weight", text: manager.weight, unit: "kg")
 
                 HStack(spacing: 10) {
                     ForEach(Gender.allCases, id: \.self) { gender in
@@ -288,6 +289,11 @@ private struct AboutYouStep: View {
             PrimaryButton(title: "Continue", style: .lime) { manager.next() }
         }
         .padding(24)
+        .sheet(item: $activeField) { field in
+            NumberPickerSheet(field: field, manager: manager)
+                .presentationDetents([.height(340)])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     private func importFromHealth() {
@@ -313,27 +319,130 @@ private struct AboutYouStep: View {
         }
     }
 
-    private func fieldRow(label: String, text: Binding<String>, unit: String) -> some View {
-        HStack {
-            Text(label)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(Color.voltTextDark)
-            Spacer()
-            TextField("", text: text)
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.trailing)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(Color.voltTextDark)
-                .frame(width: 70)
-            Text(unit)
-                .font(.system(size: 13))
-                .foregroundStyle(Color.voltTextMuted)
-                .frame(width: 44, alignment: .leading)
+    private func fieldRow(field: PickerField, label: String, text: String, unit: String) -> some View {
+        Button {
+            activeField = field
+        } label: {
+            HStack {
+                Text(label)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(Color.voltTextDark)
+                Spacer()
+                Text(text.isEmpty ? "–" : text)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.voltTextDark)
+                Text(unit)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.voltTextMuted)
+                    .frame(width: 44, alignment: .leading)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.voltTextMuted)
+            }
+            .padding(16)
+            .background(Color.voltCard)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 4)
         }
-        .padding(16)
-        .background(Color.voltCard)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 4)
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Scroll-wheel picker for Age / Height / Weight
+
+private enum PickerField: Identifiable {
+    case age, height, weight
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .age: return "Age"
+        case .height: return "Height"
+        case .weight: return "Weight"
+        }
+    }
+    var unit: String {
+        switch self {
+        case .age: return "years"
+        case .height: return "cm"
+        case .weight: return "kg"
+        }
+    }
+    var range: ClosedRange<Int> {
+        switch self {
+        case .age: return 13...90
+        case .height: return 120...220
+        case .weight: return 35...200
+        }
+    }
+    var fallback: Int {
+        switch self {
+        case .age: return 24
+        case .height: return 175
+        case .weight: return 70
+        }
+    }
+}
+
+private struct NumberPickerSheet: View {
+    let field: PickerField
+    @Bindable var manager: OnboardingStateManager
+    @Environment(\.dismiss) private var dismiss
+    @State private var value: Int = 0
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(field.title)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(.white)
+                Spacer()
+                Button("Done") {
+                    commit()
+                    dismiss()
+                }
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color.voltLime)
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+
+            Picker("", selection: $value) {
+                ForEach(field.range, id: \.self) { n in
+                    Text("\(n) \(field.unit)")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .tag(n)
+                }
+            }
+            .pickerStyle(.wheel)
+            .frame(height: 200)
+            .padding(.top, 8)
+
+            Spacer()
+        }
+        .background(Color.black.ignoresSafeArea())
+        .onAppear {
+            let current = Int(currentText()) ?? field.fallback
+            value = min(max(current, field.range.lowerBound), field.range.upperBound)
+        }
+    }
+
+    private func currentText() -> String {
+        switch field {
+        case .age: return manager.age
+        case .height: return manager.height
+        case .weight: return manager.weight
+        }
+    }
+
+    private func commit() {
+        let text = "\(value)"
+        switch field {
+        case .age: manager.age = text
+        case .height: manager.height = text
+        case .weight: manager.weight = text
+        }
     }
 }
 
