@@ -111,12 +111,12 @@ private struct WelcomeStep: View {
 
             VStack(alignment: .leading, spacing: 0) {
                 Text("Your\nAI Fitness\nCompanion")
-                    .font(.system(size: 50, weight: .bold))
+                    .font(.system(size: 48, weight: .bold))
                     .foregroundStyle(.white)
                     .lineSpacing(2)
-                    .padding(.top, 2)
+                    .padding(.top, 0)
 
-                Text("Personalized workouts, smart meal plans, and real time insights all powered by AI")
+                Text("Personalized workouts, smart meal plans, and real time insights all powered by AI ")
                     .font(.system(size: 18))
                     .foregroundStyle(.white.opacity(0.65))
                     .lineSpacing(3)
@@ -127,7 +127,9 @@ private struct WelcomeStep: View {
 
                 PrimaryButton(title: "Get Started", icon: "play.fill", style: .lime) { manager.next() }
             }
-            .padding(24)
+            .padding(.horizontal, 24)
+            .padding(.top, 8)
+            .padding(.bottom, 24)
         }
         .preferredColorScheme(.dark)
     }
@@ -790,8 +792,30 @@ private struct OnboardingScanStep: View {
                 BodyImageAnalyzer.lastMetrics = metrics
                 bodyDetected = true
                 scanMessage = "Body detected — \(metrics.classification.label) build, \(Int(metrics.confidence * 100))% scan confidence"
+                #if DEBUG
+                print("""
+                🔍 SCAN DEBUG
+                classification: \(metrics.classification.rawValue)
+                jointConfidence: \(String(format: "%.2f", metrics.confidence))
+                shoulderToWaist: \(String(format: "%.2f", metrics.shoulderToWaistRatio))
+                waistToHip: \(String(format: "%.2f", metrics.waistToHipRatio))
+                torsoBulk: \(String(format: "%.2f", metrics.torsoBulk))
+                --- posture ---
+                shoulderTilt: \(metrics.posture.map { String(format: "%.1f°", $0.shoulderTiltDegrees) } ?? "nil — no legs/posture data")
+                lowerShoulder: \(metrics.posture?.lowerShoulder?.rawValue ?? "level/none")
+                shoulderOffsetCm: \(metrics.posture?.shoulderOffsetCm.map { String(format: "%.1f cm", $0) } ?? "nil (no height entered)")
+                pelvicTilt: \(metrics.posture.map { String(format: "%.1f°", $0.pelvicTiltDegrees) } ?? "nil")
+                headTilt: \(metrics.posture?.headTiltDegrees.map { String(format: "%.1f°", $0) } ?? "nil")
+                kneeDeviation: \(metrics.posture.map { String(format: "%.3f", $0.kneeDeviation) } ?? "nil") (\(metrics.posture?.kneeAlignmentLabel ?? "-"))
+                ankleAsymmetry: \(metrics.posture.map { String(format: "%.3f", $0.ankleAsymmetry) } ?? "nil") (\(metrics.posture?.ankleAlignmentLabel ?? "-"))
+                postureScore: \(metrics.posture?.score.description ?? "nil")
+                """)
+                #endif
             } else {
                 showNoBodyAlert = true
+                #if DEBUG
+                print("🔍 SCAN DEBUG: no human detected in image")
+                #endif
             }
         }
     }
@@ -945,6 +969,10 @@ private struct CreatingPlanStep: View {
 
         if manager.didScan {
             let scan = BodyAnalysisEngine.analyze(profile: profile)
+            if let metrics = BodyImageAnalyzer.lastMetrics, let posture = metrics.posture {
+                PostureStore.record(posture, confidence: metrics.confidence)
+                scan.postureScore = posture.score
+            }
             context.insert(scan)
             profile.currentBodyType = scan.bodyType
         }
