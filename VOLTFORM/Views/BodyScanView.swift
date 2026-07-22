@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import AVFoundation
+import PhotosUI
 
 struct BodyScanView: View {
     @Environment(\.modelContext) private var context
@@ -10,6 +11,14 @@ struct BodyScanView: View {
     @State private var scanning = false
     @State private var scanLineOffset: CGFloat = -140
     @State private var result: BodyScanResult?
+    @State private var capturedImage: UIImage?
+    @State private var showCamera = false
+    @State private var selectedItem: PhotosPickerItem?
+    @State private var showNoBodyAlert = false
+
+    private var cameraAvailable: Bool {
+        UIImagePickerController.isSourceTypeAvailable(.camera)
+    }
 
     var body: some View {
         NavigationStack {
@@ -35,14 +44,20 @@ struct BodyScanView: View {
                     Spacer()
 
                     ZStack {
-                        // Camera preview placeholder — swap in an AVCaptureVideoPreviewLayer
-                        // wrapper here when wiring the real Vision pipeline.
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
                             .fill(Color.white.opacity(0.04))
                             .frame(width: 260, height: 360)
 
-                        BodyFigurePlaceholder(dark: true)
-                            .frame(height: 260)
+                        if let capturedImage {
+                            Image(uiImage: capturedImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 260, height: 360)
+                                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        } else {
+                            BodyFigurePlaceholder(dark: true)
+                                .frame(height: 260)
+                        }
 
                         ScanCorners()
                             .stroke(Color.voltLime, style: StrokeStyle(lineWidth: 3, lineCap: .round))
@@ -58,7 +73,7 @@ struct BodyScanView: View {
                         }
                     }
 
-                    Text(scanning ? "Scanning..." : "Stand inside the frame")
+                    Text(scanning ? "Scanning..." : (capturedImage == nil ? "Take or choose a photo" : "Stand inside the frame"))
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.white)
                         .padding(.top, 26)
@@ -69,12 +84,58 @@ struct BodyScanView: View {
 
                     Spacer()
 
-                    PrimaryButton(title: scanning ? "Scanning..." : "Start Scan", icon: "camera.fill", style: .lime, isDisabled: scanning) {
-                        startScan()
+                    if capturedImage == nil {
+                        VStack(spacing: 10) {
+                            if cameraAvailable {
+                                PrimaryButton(title: "Open Camera", icon: "camera.fill", style: .lime) {
+                                    showCamera = true
+                                }
+                            }
+                            PhotosPicker(selection: $selectedItem, matching: .images) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "photo.on.rectangle")
+                                    Text("Choose from Library")
+                                }
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 52)
+                                .background(Color.white.opacity(0.08))
+                                .clipShape(Capsule())
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 16)
+                    } else {
+                        PrimaryButton(title: scanning ? "Scanning..." : "Start Scan", icon: "camera.fill", style: .lime, isDisabled: scanning) {
+                            startScan()
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 16)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 16)
                 }
+            }
+            .fullScreenCover(isPresented: $showCamera) {
+                CameraCapturePicker { image in
+                    capturedImage = image
+                }
+                .ignoresSafeArea()
+            }
+            .onChange(of: selectedItem) { _, item in
+                guard let item else { return }
+                Task { @MainActor in
+                    if let data = try? await item.loadTransferable(type: Data.self),
+                       let image = UIImage(data: data) {
+                        capturedImage = image
+                    }
+                    selectedItem = nil
+                }
+            }
+            .alert("No body detected", isPresented: $showNoBodyAlert) {
+                Button("Retake") { capturedImage = nil }
+                Button("Use anyway") { finalizeScan(metrics: nil) }
+            } message: {
+                Text("Make sure your full body is visible and well lit, then try again.")
             }
             .navigationDestination(item: $result) { scan in
                 ScanResultView(scan: scan) {
@@ -85,10 +146,7 @@ struct BodyScanView: View {
     }
 
     private func startScan() {
-        AVCaptureDevice.requestAccess(for: .video) { _ in
-            // The mock engine runs either way; the permission request keeps the
-            // flow identical once a real camera pipeline is dropped in.
-        }
+        guard let capturedImage else { return }
 
         scanning = true
         scanLineOffset = -160
@@ -96,15 +154,87 @@ struct BodyScanView: View {
             scanLineOffset = 160
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.4) {
-            guard let profile = profiles.first else { return }
-            let scan = BodyAnalysisEngine.analyze(profile: profile)
-            context.insert(scan)
-            profile.currentBodyType = scan.bodyType
-            try? context.save()
+        let cgImage = capturedImage.cgImage
+        let orientation = CGImagePropertyOrientation(capturedImage.imageOrientation)
+        let heightCm = Double(profiles.first?.heightCm ?? 0)
+
+        Task { @MainActor in
+            async let analysis = BodyImageAnalyzer.analyze(cgImage: cgImage, orientation: orientation, userHeightCm: heightCm)
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // let the scan line play
+            let metrics = await analysis
+
             scanning = false
-            result = scan
+            if let metrics {
+                BodyImageAnalyzer.lastMetrics = metrics
+                #if DEBUG
+                print("🔍 IN-APP SCAN DEBUG: \(metrics)")
+                #endif
+                finalizeScan(metrics: metrics)
+            } else {
+                showNoBodyAlert = true
+            }
+        }
+    }
+
+    private func finalizeScan(metrics: BodyImageMetrics?) {
+        guard let profile = profiles.first else { return }
+        let scan = BodyAnalysisEngine.analyze(profile: profile)
+        if let posture = metrics?.posture {
+            PostureStore.record(posture, confidence: metrics?.confidence ?? 0.5)
+            scan.postureScore = posture.score
+        }
+        context.insert(scan)
+        profile.currentBodyType = scan.bodyType
+        try? context.save()
+        result = scan
+    }
+}
+
+// MARK: - Camera capture
+
+private struct CameraCapturePicker: UIViewControllerRepresentable {
+    var onImage: (UIImage) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: CameraCapturePicker
+        init(_ parent: CameraCapturePicker) { self.parent = parent }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.onImage(image)
+            }
+            parent.dismiss()
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
         }
     }
 }
 
+private extension CGImagePropertyOrientation {
+    init(_ orientation: UIImage.Orientation) {
+        switch orientation {
+        case .up: self = .up
+        case .down: self = .down
+        case .left: self = .left
+        case .right: self = .right
+        case .upMirrored: self = .upMirrored
+        case .downMirrored: self = .downMirrored
+        case .leftMirrored: self = .leftMirrored
+        case .rightMirrored: self = .rightMirrored
+        @unknown default: self = .up
+        }
+    }
+}
