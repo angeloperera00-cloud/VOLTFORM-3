@@ -7,7 +7,6 @@ struct BodyView: View {
     @Query(sort: \WorkoutSession.startDate, order: .reverse) private var sessions: [WorkoutSession]
 
     @State private var tab = 0
-    @State private var showScan = false
 
     private var profile: UserProfile? { profiles.first }
     private var latestScan: BodyScanResult? { scans.first }
@@ -23,21 +22,9 @@ struct BodyView: View {
             Color.voltBlack.ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 20) {
-                HStack {
-                    Text("Your Twin")
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundStyle(.white)
-                    Spacer()
-                    Button { showScan = true } label: {
-                        Image(systemName: "camera.viewfinder")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color.voltLime)
-                            .frame(width: 36, height: 36)
-                            .background(Color.white.opacity(0.1))
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                }
+                Text("Your Twin")
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundStyle(.white)
 
                 PillSegmentedControl(options: ["Overview", "Muscle Balance", "Posture"], selection: $tab, dark: true)
 
@@ -53,11 +40,8 @@ struct BodyView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 10)
+            .padding(.top, 12)
             .padding(.bottom, 20)
-        }
-        .fullScreenCover(isPresented: $showScan) {
-            BodyScanView()
         }
     }
 
@@ -354,7 +338,7 @@ struct BodyView: View {
 
     private var postureFigureCard: some View {
         DarkWorkoutCard {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 16) {
                 HStack(spacing: 6) {
                     ForEach(Array(["Front", "Back", "Side"].enumerated()), id: \.offset) { index, label in
                         Button {
@@ -373,83 +357,86 @@ struct BodyView: View {
                     Spacer()
                 }
 
-                HStack(alignment: .top, spacing: 14) {
-                    PostureFigure(side: figureSide)
-                        .frame(width: 180, height: 420)
+                PostureFigure(side: figureSide)
+                    .frame(height: 300)
+                    .frame(maxWidth: .infinity)
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("KEY INSIGHTS")
-                            .font(.system(size: 11, weight: .semibold))
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("KEY INSIGHTS")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.5))
+
+                    if let e = PostureStore.latest {
+                        insightRow(
+                            icon: "person.crop.circle",
+                            title: "Head Tilt",
+                            sub: (e.headTiltDegrees ?? 0) < 4 ? "Upright" : "Slightly tilted",
+                            value: "\(Int((e.headTiltDegrees ?? 0).rounded()))°",
+                            flagged: (e.headTiltDegrees ?? 0) >= 4
+                        )
+                        insightRow(
+                            icon: "figure.arms.open",
+                            title: "Shoulder Offset",
+                            sub: e.lowerShoulder.map { "\($0) shoulder lower" } ?? "Level",
+                            value: e.shoulderOffsetCm.map { String(format: "%.1f cm", $0) } ?? "\(Int(abs(e.shoulderTiltDegrees).rounded()))°",
+                            flagged: abs(e.shoulderTiltDegrees) >= 2.5
+                        )
+                        insightRow(
+                            icon: "circle.grid.cross",
+                            title: "Pelvic Tilt",
+                            sub: abs(e.pelvicTiltDegrees) < 2.5 ? "Good alignment" : "Slight tilt",
+                            value: "\(Int(abs(e.pelvicTiltDegrees).rounded()))°",
+                            flagged: abs(e.pelvicTiltDegrees) >= 2.5
+                        )
+                        insightRow(
+                            icon: "figure.walk",
+                            title: "Knee Alignment",
+                            sub: e.kneeAlignmentLabel == "Good" ? "Balanced" : "Check stance",
+                            value: e.kneeAlignmentLabel,
+                            flagged: e.kneeAlignmentLabel != "Good"
+                        )
+                        insightRow(
+                            icon: "shoeprints.fill",
+                            title: "Ankle Alignment",
+                            sub: e.ankleAlignmentLabel == "Good" ? "Balanced" : "Uneven stance",
+                            value: e.ankleAlignmentLabel,
+                            flagged: e.ankleAlignmentLabel != "Good"
+                        )
+                    } else {
+                        Text("Run a new scan to see measured insights here")
+                            .font(.system(size: 12))
                             .foregroundStyle(.white.opacity(0.5))
-
-                        if let e = PostureStore.latest {
-                            insightRow(
-                                icon: "person.crop.circle",
-                                title: "Head Tilt",
-                                sub: (e.headTiltDegrees ?? 0) < 4 ? "Upright" : "Slightly tilted",
-                                value: "\(Int((e.headTiltDegrees ?? 0).rounded()))°",
-                                flagged: (e.headTiltDegrees ?? 0) >= 4
-                            )
-                            insightRow(
-                                icon: "figure.arms.open",
-                                title: "Shoulder Offset",
-                                sub: e.lowerShoulder.map { "\($0) shoulder slightly lower" } ?? "Level",
-                                value: e.shoulderOffsetCm.map { String(format: "%.1f cm", $0) } ?? "\(Int(abs(e.shoulderTiltDegrees).rounded()))°",
-                                flagged: abs(e.shoulderTiltDegrees) >= 2.5
-                            )
-                            insightRow(
-                                icon: "circle.grid.cross",
-                                title: "Pelvic Tilt",
-                                sub: abs(e.pelvicTiltDegrees) < 2.5 ? "Good Alignment" : "Slight tilt",
-                                value: "\(Int(abs(e.pelvicTiltDegrees).rounded()))°",
-                                flagged: abs(e.pelvicTiltDegrees) >= 2.5
-                            )
-                            insightRow(
-                                icon: "figure.walk",
-                                title: "Knee Alignment",
-                                sub: e.kneeAlignmentLabel == "Good" ? "Balanced" : "Check stance",
-                                value: e.kneeAlignmentLabel,
-                                flagged: e.kneeAlignmentLabel != "Good"
-                            )
-                            insightRow(
-                                icon: "shoeprints.fill",
-                                title: "Ankle Alignment",
-                                sub: e.ankleAlignmentLabel == "Good" ? "Balanced" : "Uneven stance",
-                                value: e.ankleAlignmentLabel,
-                                flagged: e.ankleAlignmentLabel != "Good"
-                            )
-                        } else {
-                            Text("Run a new scan to see measured insights here.")
-                                .font(.system(size: 12))
-                                .foregroundStyle(.white.opacity(0.5))
-                        }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
     }
 
     private func insightRow(icon: String, title: String, sub: String, value: String, flagged: Bool) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             Image(systemName: icon)
-                .font(.system(size: 13))
+                .font(.system(size: 14))
                 .foregroundStyle(flagged ? Color.voltGold : Color.voltLime)
                 .frame(width: 22)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.white)
+                    .lineLimit(1)
                 Text(sub)
-                    .font(.system(size: 10))
+                    .font(.system(size: 12))
                     .foregroundStyle(.white.opacity(0.5))
+                    .lineLimit(1)
             }
-            Spacer(minLength: 4)
+            Spacer(minLength: 8)
             Text(value)
-                .font(.system(size: 12, weight: .bold))
+                .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(flagged ? Color.voltGold : Color.voltLime)
+                .lineLimit(1)
+                .fixedSize()
         }
-        .padding(8)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
         .background(Color.white.opacity(0.05))
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
