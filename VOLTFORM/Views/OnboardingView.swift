@@ -985,7 +985,6 @@ private struct CreatingPlanStep: View {
         )
         context.insert(plan)
 
-        StorageService.seedSampleDataIfNeeded(context: context, profile: profile)
         NotificationService.requestAuthorization()
         try? context.save()
     }
