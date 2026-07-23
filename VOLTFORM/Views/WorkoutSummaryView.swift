@@ -39,10 +39,34 @@ struct WorkoutSummaryView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(height: 420)
+                        .id(showBack)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: showBack ? .trailing : .leading).combined(with: .opacity),
+                            removal: .move(edge: showBack ? .leading : .trailing).combined(with: .opacity)
+                        ))
+                        .gesture(
+                            DragGesture(minimumDistance: 30)
+                                .onEnded { value in
+                                    let horizontal = value.translation.width
+                                    let vertical = value.translation.height
+                                    guard abs(horizontal) > abs(vertical) else { return }
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        if horizontal < 0 {
+                                            showBack = true   // swipe left -> Back
+                                        } else {
+                                            showBack = false  // swipe right -> Front
+                                        }
+                                    }
+                                }
+                        )
 
                     PillSegmentedControl(options: ["Front", "Back"], selection: Binding(
                         get: { showBack ? 1 : 0 },
-                        set: { showBack = $0 == 1 }
+                        set: { newValue in
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                showBack = newValue == 1
+                            }
+                        }
                     ), dark: true)
                     .frame(width: 200)
                 }
