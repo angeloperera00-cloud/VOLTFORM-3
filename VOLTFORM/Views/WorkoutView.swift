@@ -151,7 +151,8 @@ struct WorkoutView: View {
                                     index: index + 1,
                                     name: exercise.name,
                                     detail: "\(exercise.sets) sets × \(exercise.repRange)",
-                                    isCompleted: done
+                                    isCompleted: done,
+                                    imageName: exercise.imageName
                                 )
                             }
                             .buttonStyle(.plain)
@@ -169,7 +170,8 @@ struct WorkoutView: View {
                                     index: index + 1,
                                     name: exercise.name,
                                     detail: "\(exercise.sets) sets × \(exercise.repRange)",
-                                    isCompleted: selected
+                                    isCompleted: selected,
+                                    imageName: exercise.imageName
                                 )
                             }
                             .buttonStyle(.plain)

@@ -232,6 +232,7 @@ struct WorkoutExerciseRow: View {
     let name: String
     let detail: String
     let isCompleted: Bool
+    var imageName: String? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -239,6 +240,14 @@ struct WorkoutExerciseRow: View {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(Color.voltTextMuted)
                 .frame(width: 22, alignment: .leading)
+            if let imageName {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 52, height: 52)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .clipped()
+            }
             VStack(alignment: .leading, spacing: 3) {
                 Text(name)
                     .font(.system(size: 15, weight: .semibold))
