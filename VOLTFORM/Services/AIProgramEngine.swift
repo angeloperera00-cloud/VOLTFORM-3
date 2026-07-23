@@ -8,6 +8,79 @@ struct PlannedExercise: Identifiable, Hashable {
     let muscle: MuscleGroup
     let sets: Int
     let repRange: String
+
+    /// Asset catalog name for this exercise's thumbnail, e.g. "ExercisePullUp".
+    /// Falls back to a generic placeholder if the name isn't in the lookup —
+    /// never crashes or shows a blank cell for an exercise we forgot to map.
+    var imageName: String {
+        ExerciseImageLookup.assetName(for: name)
+    }
+}
+
+/// Maps every exercise name used across AIProgramEngine to one canonical
+/// Assets.xcassets image name. Name variants that refer to the same movement
+/// (e.g. "Pull-Up" / "Pull Up") are normalized to a single entry so they
+/// share one image instead of needing two.
+enum ExerciseImageLookup {
+    static let placeholder = "ExercisePlaceholder"
+
+    private static let table: [String: String] = {
+        let entries: [(String, String)] = [
+            ("Arnold Press", "ArnoldPress"),
+            ("Back Squat", "BackSquat"),
+            ("Barbell Bench Press", "BarbellBenchPress"),
+            ("Barbell Row", "BarbellRow"),
+            ("Bent-Over Row", "Bent-OverRow"),
+            ("Biceps Curl", "Biceps_Curl"),
+            ("Cable Crunch", "Cable_Crunch"),
+            ("Cable Fly", "CableFly"),
+            ("Cable Row", "Cable Row"),
+            ("Close Grip Bench Press", "Close Grip Bench Press"),
+            ("Deadlift", "ExerciseDeadlift"),
+            ("Dumbbell Shoulder Press", "ExerciseDumbbellShoulderPress"),
+            ("EZ-Bar Curl", "ExerciseEzBarCurl"),
+            ("EZ Bar Curl", "ExerciseEzBarCurl"),
+            ("Face Pull", "ExerciseFacePull"),
+            ("Flat Dumbbell Press", "ExerciseFlatDumbbellPress"),
+            ("Front Squat", "ExerciseFrontSquat"),
+            ("Goblet Squat", "ExerciseGobletSquat"),
+            ("Hammer Curl", "ExerciseHammerCurl"),
+            ("Hanging Leg Raise", "ExerciseHangingLegRaise"),
+            ("Hip Thrust", "ExerciseHipThrust"),
+            ("Incline Barbell Press", "ExerciseInclineBarbellPress"),
+            ("Incline Dumbbell Curl", "ExerciseInclineDumbbellCurl"),
+            ("Incline Dumbbell Press", "ExerciseInclineDumbbellPress"),
+            ("Lat Pulldown", "ExerciseLatPulldown"),
+            ("Lateral Raise", "ExerciseLateralRaise"),
+            ("Leg Curl", "ExerciseLegCurl"),
+            ("Leg Extension", "ExerciseLegExtension"),
+            ("Leg Press", "ExerciseLegPress"),
+            ("One-Arm Dumbbell Row", "ExerciseOneArmDumbbellRow"),
+            ("Overhead Press", "ExerciseOverheadPress"),
+            ("Overhead Triceps Extension", "ExerciseOverheadTricepsExtension"),
+            ("Plank", "ExercisePlank"),
+            ("Pull-Up", "ExercisePullUp"),
+            ("Pull Up", "ExercisePullUp"),
+            ("Push-Up Burnout", "ExercisePushUpBurnout"),
+            ("Rear Delt Fly", "ExerciseRearDeltFly"),
+            ("Romanian Deadlift", "ExerciseRomanianDeadlift"),
+            ("Rope Pushdown", "ExerciseRopePushdown"),
+            ("Russian Twist", "ExerciseRussianTwist"),
+            ("Seated Cable Row", "ExerciseSeatedCableRow"),
+            ("Seated Calf Raise", "ExerciseSeatedCalfRaise"),
+            ("Skull Crusher", "ExerciseSkullCrusher"),
+            ("Standing Calf Raise", "ExerciseStandingCalfRaise"),
+            ("Straight Arm Pulldown", "ExerciseStraightArmPulldown"),
+            ("Triceps Pushdown", "ExerciseTricepsPushdown"),
+            ("Walking Lunges", "ExerciseWalkingLunges"),
+            ("Weighted Dip", "ExerciseWeightedDip")
+        ]
+        return Dictionary(uniqueKeysWithValues: entries)
+    }()
+
+    static func assetName(for exerciseName: String) -> String {
+        table[exerciseName] ?? placeholder
+    }
 }
 
 struct PlannedWorkout: Identifiable, Hashable {
@@ -269,7 +342,7 @@ enum AIProgramEngine {
         case "back":
             return [
                 e("Deadlift", .back, 4, r.compound),
-                e("Pull Up", .back, 4, r.compound),
+                e("Pull-Up", .back, 4, r.compound),
                 e("Barbell Row", .back, 3, "8-10 reps"),
                 e("Seated Cable Row", .back, 3, "10-12 reps"),
                 e("Straight Arm Pulldown", .back, 2, r.isolation)
@@ -285,7 +358,7 @@ enum AIProgramEngine {
         case "arms":
             return [
                 e("Close Grip Bench Press", .arms, 4, r.compound),
-                e("EZ Bar Curl", .arms, 4, "8-12 reps"),
+                e("EZ-Bar Curl", .arms, 4, "8-12 reps"),
                 e("Skull Crusher", .arms, 3, r.isolation),
                 e("Incline Dumbbell Curl", .arms, 3, r.isolation),
                 e("Rope Pushdown", .arms, 3, r.isolation),
@@ -521,7 +594,7 @@ enum AIProgramEngine {
         let topWeight = last.sets.map(\.weight).max() ?? 0
         guard topWeight > 0 else { return nil }
 
-        let isCompound = ["Squat", "Deadlift", "Bench", "Press", "Row", "Pull Up", "Dip", "Thrust"]
+        let isCompound = ["Squat", "Deadlift", "Bench", "Press", "Row", "Pull-Up", "Pull Up", "Dip", "Thrust"]
             .contains { exerciseName.contains($0) }
         let increment: Double = isCompound ? 2.5 : 1.0
         return last.isDone ? topWeight + increment : topWeight
