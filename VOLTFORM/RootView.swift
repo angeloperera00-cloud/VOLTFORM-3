@@ -10,7 +10,7 @@ struct RootView: View {
 
     var body: some View {
         ZStack {
-            if let profile = activeProfile {
+            if activeProfile != nil {
                 MainTabView()
                     .transition(.opacity)
             } else {

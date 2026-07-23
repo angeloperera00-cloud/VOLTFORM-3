@@ -307,7 +307,7 @@ struct PersonalInfoView: View {
                             .font(.system(size: 15, weight: .medium))
                             .foregroundStyle(Color.voltTextDark)
                         Spacer()
-                        TextField("Name", text: $profile.name)
+                        TextField("Name", text: $profile.firstName)
                             .multilineTextAlignment(.trailing)
                             .foregroundStyle(Color.voltTextDark)
                     }

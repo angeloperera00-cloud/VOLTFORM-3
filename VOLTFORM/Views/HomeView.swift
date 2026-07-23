@@ -122,7 +122,7 @@ struct HomeView: View {
                 PrimaryButton(title: "Start Workout", icon: "play.fill", style: .lime) {
                     activeSession = StorageService.startSession(from: workout, context: context)
                 }
-                .frame(width: 240)
+                .frame(width: 220)
 
                 Spacer()
             }

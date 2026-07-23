@@ -342,7 +342,9 @@ struct BodyView: View {
                 HStack(spacing: 6) {
                     ForEach(Array(["Front", "Back", "Side"].enumerated()), id: \.offset) { index, label in
                         Button {
-                            figureSide = index
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                figureSide = index
+                            }
                         } label: {
                             Text(label)
                                 .font(.system(size: 12, weight: .semibold))
@@ -360,45 +362,60 @@ struct BodyView: View {
                 PostureFigure(side: figureSide)
                     .frame(height: 300)
                     .frame(maxWidth: .infinity)
+                    .id(figureSide)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing).combined(with: .opacity),
+                        removal: .move(edge: .leading).combined(with: .opacity)
+                    ))
+                    .gesture(
+                        DragGesture(minimumDistance: 30)
+                            .onEnded { value in
+                                let horizontal = value.translation.width
+                                let vertical = value.translation.height
+                                guard abs(horizontal) > abs(vertical) else { return }
+                                withAnimation(.easeInOut(duration: 0.25)) {
+                                    if horizontal < 0 {
+                                        figureSide = (figureSide + 1) % 3   // swipe left -> next
+                                    } else {
+                                        figureSide = (figureSide + 2) % 3   // swipe right -> previous
+                                    }
+                                }
+                            }
+                    )
 
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 0) {
                     Text("KEY INSIGHTS")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.5))
+                        .padding(.bottom, 10)
 
                     if let e = PostureStore.latest {
                         insightRow(
-                            icon: "person.crop.circle",
                             title: "Head Tilt",
-                            sub: (e.headTiltDegrees ?? 0) < 4 ? "Upright" : "Slightly tilted",
-                            value: "\(Int((e.headTiltDegrees ?? 0).rounded()))°",
+                            value: (e.headTiltDegrees ?? 0) < 4 ? "Good" : "Tilted",
                             flagged: (e.headTiltDegrees ?? 0) >= 4
                         )
+                        Divider().background(Color.white.opacity(0.08))
                         insightRow(
-                            icon: "figure.arms.open",
-                            title: "Shoulder Offset",
-                            sub: e.lowerShoulder.map { "\($0) shoulder lower" } ?? "Level",
-                            value: e.shoulderOffsetCm.map { String(format: "%.1f cm", $0) } ?? "\(Int(abs(e.shoulderTiltDegrees).rounded()))°",
+                            title: "Shoulders",
+                            value: abs(e.shoulderTiltDegrees) < 2.5 ? "Level" : (e.lowerShoulder.map { "\($0) lower" } ?? "Uneven"),
                             flagged: abs(e.shoulderTiltDegrees) >= 2.5
                         )
+                        Divider().background(Color.white.opacity(0.08))
                         insightRow(
-                            icon: "circle.grid.cross",
-                            title: "Pelvic Tilt",
-                            sub: abs(e.pelvicTiltDegrees) < 2.5 ? "Good alignment" : "Slight tilt",
-                            value: "\(Int(abs(e.pelvicTiltDegrees).rounded()))°",
+                            title: "Hips",
+                            value: abs(e.pelvicTiltDegrees) < 2.5 ? "Level" : "Tilted",
                             flagged: abs(e.pelvicTiltDegrees) >= 2.5
                         )
+                        Divider().background(Color.white.opacity(0.08))
                         insightRow(
-                            icon: "figure.walk",
-                            title: "Knee Alignment",
-                            sub: e.kneeAlignmentLabel == "Good" ? "Balanced" : "Check stance",
+                            title: "Knees",
                             value: e.kneeAlignmentLabel,
                             flagged: e.kneeAlignmentLabel != "Good"
                         )
+                        Divider().background(Color.white.opacity(0.08))
                         insightRow(
-                            icon: "shoeprints.fill",
-                            title: "Ankle Alignment",
-                            sub: e.ankleAlignmentLabel == "Good" ? "Balanced" : "Uneven stance",
+                            title: "Ankles",
                             value: e.ankleAlignmentLabel,
                             flagged: e.ankleAlignmentLabel != "Good"
                         )
@@ -412,33 +429,17 @@ struct BodyView: View {
         }
     }
 
-    private func insightRow(icon: String, title: String, sub: String, value: String, flagged: Bool) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundStyle(flagged ? Color.voltGold : Color.voltLime)
-                .frame(width: 22)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                Text(sub)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.white.opacity(0.5))
-                    .lineLimit(1)
-            }
-            Spacer(minLength: 8)
+    private func insightRow(title: String, value: String, flagged: Bool) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.white)
+            Spacer()
             Text(value)
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(flagged ? Color.voltGold : Color.voltLime)
-                .lineLimit(1)
-                .fixedSize()
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(Color.white.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .padding(.vertical, 12)
     }
 
     private func aiConfidenceCard(entry: PostureStore.Entry) -> some View {
