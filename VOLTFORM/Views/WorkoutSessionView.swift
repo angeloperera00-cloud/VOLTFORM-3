@@ -162,9 +162,13 @@ struct WorkoutSessionView: View {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(Color.white.opacity(0.05))
                         .frame(height: 160)
-                    Image(systemName: "figure.strengthtraining.traditional")
-                        .font(.system(size: 56))
-                        .foregroundStyle(Color.voltLime.opacity(0.7))
+                    Image(ExerciseImageLookup.assetName(for: exercise.name))
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 160)
+                        .frame(maxWidth: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .clipped()
                 }
 
                 HStack(spacing: 8) {
