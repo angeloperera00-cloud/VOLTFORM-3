@@ -6,11 +6,7 @@ struct WorkoutSummaryView: View {
     let session: WorkoutSession
     let onDone: () -> Void
 
-    /// Trained muscles render green (>=75 maps to voltLimeDeep in
-    /// MuscleRecoveryFigure); everything else falls through to unknownColor.
-    private var trainedHighlight: [MuscleGroup: Double] {
-        Dictionary(uniqueKeysWithValues: session.muscles.map { ($0, 100.0) })
-    }
+    @State private var showBack = false
 
     var body: some View {
         ZStack {
@@ -38,8 +34,18 @@ struct WorkoutSummaryView: View {
 
                 Spacer()
 
-                MuscleRecoveryFigure(recoveries: trainedHighlight, unknownColor: .white.opacity(0.12))
-                    .frame(height: 280)
+                VStack(spacing: 16) {
+                    Image(showBack ? "PostureBodyBack" : "PostureBodyFront")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 420)
+
+                    PillSegmentedControl(options: ["Front", "Back"], selection: Binding(
+                        get: { showBack ? 1 : 0 },
+                        set: { showBack = $0 == 1 }
+                    ), dark: true)
+                    .frame(width: 200)
+                }
 
                 Spacer()
 
