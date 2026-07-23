@@ -49,13 +49,6 @@ struct WorkoutSummaryView: View {
 
                 Spacer()
 
-                DarkWorkoutCard {
-                    Text("Great workout! You hit all your target muscles.")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.85))
-                }
-                .padding(.bottom, 16)
-
                 PrimaryButton(title: "Done", style: .lime) {
                     dismiss()
                     onDone()
