@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Combine
+import UIKit
 
 struct WorkoutSessionView: View {
     @Environment(\.modelContext) private var context
@@ -83,6 +84,7 @@ struct WorkoutSessionView: View {
                 restSecondsRemaining -= 1
             } else {
                 isResting = false
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
             }
         }
         .fullScreenCover(isPresented: $showCompleted) {
@@ -161,14 +163,13 @@ struct WorkoutSessionView: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(Color.white.opacity(0.05))
-                        .frame(height: 160)
+                        .frame(height: 220)
                     Image(ExerciseImageLookup.assetName(for: exercise.name))
                         .resizable()
-                        .scaledToFill()
-                        .frame(height: 160)
+                        .aspectRatio(contentMode: .fit)
                         .frame(maxWidth: .infinity)
+                        .frame(maxHeight: 220)
                         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                        .clipped()
                 }
 
                 HStack(spacing: 8) {
