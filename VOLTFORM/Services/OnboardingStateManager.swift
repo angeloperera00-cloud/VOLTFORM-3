@@ -9,9 +9,9 @@ final class OnboardingStateManager {
     var level: FitnessLevel? = nil
     var trainingDays: Int? = nil
 
-    var age: String = "24"
+    var age: String = "25"
     var height: String = "180"
-    var weight: String = "82"
+    var weight: String = "75"
     var gender: Gender = .male
 
     var dreamBody: BodyType? = nil
